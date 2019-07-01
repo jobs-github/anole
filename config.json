@@ -1,0 +1,50 @@
+{
+    "structs": 
+    [
+        {
+            "type": "tcp_config_t",
+            "members":
+            [
+                ["bool", "no_delay", "true"],
+                ["bool", "keep_alive", "true"],
+                ["bool", "fast_open", "false"],
+                ["int", "fast_open_qlen", "20"]
+            ]
+        },
+        {
+            "type": "ssl_config_t",
+            "members":
+            [
+                ["bool", "verify", "true"],
+                ["bool", "verify_hostname", "true"],
+                ["string", "cert"],
+                ["string", "key"],
+                ["string", "key_password"],
+                ["string", "cipher"],
+                ["bool", "prefer_server_cipher", "true"],
+                ["string", "sni"],
+                ["string", "alpn"],
+                ["bool", "reuse_session", "true"],
+                ["bool", "session_ticket", "false"],
+                ["int", "session_timeout", "600"],
+                ["string", "plain_http_response"],
+                ["string", "curves"],
+                ["string", "dhparam"]
+            ]
+        },
+        {
+            "type": "config_t",
+            "members":
+            [
+                ["string", "local_addr"],
+                ["uint16_t", "local_port"],
+                ["string", "remote_addr"],
+                ["uint16_t", "remote_port"],
+                ["string", "run_type", "client"],
+                ["int", "rt"],
+                ["ssl_config_t", "ssl"],
+                ["tcp_config_t", "tcp"]
+            ]
+        }
+    ]
+}
