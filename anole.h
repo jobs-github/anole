@@ -16,6 +16,7 @@ private:
     bool init_server(slothjson::config_t& config, SSL_CTX * native_handle);
     void init_client(slothjson::config_t& config, SSL_CTX * native_handle);
     void init_tcp(slothjson::config_t& config);
+    void async_accept();
 private:
     const slothjson::config_t& config_;
     boost::asio::io_context io_context_;

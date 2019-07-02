@@ -2,6 +2,8 @@
 #include "utils.h"
 #include <fstream>
 #include <openssl/opensslv.h>
+#include "server_session.h"
+#include "client_session.h"
 
 anole_t::anole_t(slothjson::config_t& config):
 config_(config),
@@ -164,6 +166,22 @@ void anole_t::init_tcp(slothjson::config_t& config)
         boost::system::error_code err;
         socket_acceptor_.set_option(boost::asio::detail::socket_option::integer<IPPROTO_TCP, TCP_FASTOPEN>(config.tcp.fast_open_qlen));
     }
+}
+
+void anole_t::async_accept()
+{
+    std::shared_ptr<anole::session_t> session(nullptr);
+    if (anole::SERVER == config_.rt)
+    {
+        session = std::make_shared<anole::server_session_t>(config_, io_context_, ssl_context_, plain_http_response_);
+    }
+    else if (anole::CLIENT == config_.rt)
+    {
+        session = std::make_shared<anole::client_session_t>(config_, io_context_, ssl_context_);
+    }
+    socket_acceptor_.async_accept(session->accept_socket(), [this, session](const boost::system::error_code err) {
+
+    });
 }
 
 void anole_t::run()

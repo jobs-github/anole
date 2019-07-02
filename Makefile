@@ -20,6 +20,9 @@ LIB_3RD =
 
 OBJECTS		= $(BIN)main.o \
 	$(BIN)anole.o \
+	$(BIN)server_session.o \
+	$(BIN)client_session.o \
+	$(BIN)session.o \
 	$(BIN)config.o \
 	$(BIN)utils.o \
 	$(BIN)slothjson.o
@@ -38,6 +41,15 @@ $(BIN)main.o:	$(CWD)main.cpp
 	$(CXX) $(FLAGS) $(INCS) -c -o $@ $<
 
 $(BIN)anole.o:	$(CWD)anole.cpp
+	$(CXX) $(FLAGS) $(INCS) -c -o $@ $<
+
+$(BIN)server_session.o:	$(CWD)server_session.cpp
+	$(CXX) $(FLAGS) $(INCS) -c -o $@ $<
+
+$(BIN)client_session.o:	$(CWD)client_session.cpp
+	$(CXX) $(FLAGS) $(INCS) -c -o $@ $<
+
+$(BIN)session.o:	$(CWD)session.cpp
 	$(CXX) $(FLAGS) $(INCS) -c -o $@ $<
 
 $(BIN)config.o:	$(CWD)config.cpp
