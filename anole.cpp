@@ -96,7 +96,8 @@ bool anole_t::init_server(slothjson::config_t& config, SSL_CTX * native_handle)
     }
     else
     {
-        ssl_context_.use_tmp_dh(boost::asio::const_buffer());
+        auto dhparam = anole::ssl::default_dhparam();
+        ssl_context_.use_tmp_dh(boost::asio::const_buffer(dhparam.data, dhparam.len));
     }
     SSL_CTX_set_ecdh_auto(native_handle, 1);
     return true;
