@@ -115,6 +115,9 @@ ssl_config_t::ssl_config_t()
     __skip_alpn = false;
     __json_has_alpn = false;
 
+    __skip_alpn_str = false;
+    __json_has_alpn_str = false;
+
     reuse_session = true;
     __skip_reuse_session = false;
     __json_has_reuse_session = false;
@@ -148,6 +151,7 @@ ssl_config_t& ssl_config_t::operator=(const ssl_config_t& obj_val)
     this->prefer_server_cipher = obj_val.prefer_server_cipher;
     this->sni = obj_val.sni;
     this->alpn = obj_val.alpn;
+    this->alpn_str = obj_val.alpn_str;
     this->reuse_session = obj_val.reuse_session;
     this->session_ticket = obj_val.session_ticket;
     this->session_timeout = obj_val.session_timeout;
@@ -168,6 +172,7 @@ bool ssl_config_t::operator==(const ssl_config_t& obj_val) const
     if (!(this->prefer_server_cipher == obj_val.prefer_server_cipher)) return false;
     if (!(this->sni == obj_val.sni)) return false;
     if (!(this->alpn == obj_val.alpn)) return false;
+    if (!(this->alpn_str == obj_val.alpn_str)) return false;
     if (!(this->reuse_session == obj_val.reuse_session)) return false;
     if (!(this->session_ticket == obj_val.session_ticket)) return false;
     if (!(this->session_timeout == obj_val.session_timeout)) return false;
@@ -191,6 +196,7 @@ bool ssl_config_t::encode(allocator_t& alloc, rapidjson::Value& json_val) const
         if (!__skip_prefer_server_cipher && !encode_field(prefer_server_cipher, "prefer_server_cipher", alloc, json_val)) break;
         if (!__skip_sni && !encode_field(sni, "sni", alloc, json_val)) break;
         if (!__skip_alpn && !encode_field(alpn, "alpn", alloc, json_val)) break;
+        if (!__skip_alpn_str && !encode_field(alpn_str, "alpn_str", alloc, json_val)) break;
         if (!__skip_reuse_session && !encode_field(reuse_session, "reuse_session", alloc, json_val)) break;
         if (!__skip_session_ticket && !encode_field(session_ticket, "session_ticket", alloc, json_val)) break;
         if (!__skip_session_timeout && !encode_field(session_timeout, "session_timeout", alloc, json_val)) break;
@@ -217,6 +223,7 @@ bool ssl_config_t::decode(const rapidjson::Value& json_val)
         if (!decode_field(json_val, "prefer_server_cipher", prefer_server_cipher, __json_has_prefer_server_cipher)) break;
         if (!decode_field(json_val, "sni", sni, __json_has_sni)) break;
         if (!decode_field(json_val, "alpn", alpn, __json_has_alpn)) break;
+        if (!decode_field(json_val, "alpn_str", alpn_str, __json_has_alpn_str)) break;
         if (!decode_field(json_val, "reuse_session", reuse_session, __json_has_reuse_session)) break;
         if (!decode_field(json_val, "session_ticket", session_ticket, __json_has_session_ticket)) break;
         if (!decode_field(json_val, "session_timeout", session_timeout, __json_has_session_timeout)) break;

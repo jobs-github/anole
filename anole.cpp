@@ -56,11 +56,11 @@ bool anole_t::init_server(slothjson::config_t& config, SSL_CTX * native_handle)
     {
         SSL_CTX_set_options(native_handle, SSL_OP_CIPHER_SERVER_PREFERENCE);
     }
-    if (config.ssl.alpn != "")
+    if (config.ssl.alpn_str != "")
     {
         SSL_CTX_set_alpn_select_cb(native_handle, [](SSL*, const unsigned char **out, unsigned char *outlen, const unsigned char *in, unsigned int inlen, void *config) -> int {
-            auto alpn = ((slothjson::config_t *)config)->ssl.alpn.c_str();
-            auto alpn_len = ((slothjson::config_t *)config)->ssl.alpn.length();
+            auto alpn = ((slothjson::config_t *)config)->ssl.alpn_str.c_str();
+            auto alpn_len = ((slothjson::config_t *)config)->ssl.alpn_str.length();
             if (OPENSSL_NPN_NEGOTIATED != SSL_select_next_proto((unsigned char **)out, outlen, (const unsigned char *)alpn, alpn_len, in, inlen))
             {
                 return SSL_TLSEXT_ERR_NOACK;
@@ -132,9 +132,9 @@ void anole_t::init_client(slothjson::config_t& config, SSL_CTX * native_handle)
     {
         ssl_context_.set_verify_mode(SSL_VERIFY_NONE);
     }
-    if (config.ssl.alpn != "")
+    if (config.ssl.alpn_str != "")
     {
-        SSL_CTX_set_alpn_protos(native_handle, (unsigned char*)config.ssl.alpn.c_str(), config.ssl.alpn.length());
+        SSL_CTX_set_alpn_protos(native_handle, (unsigned char*)config.ssl.alpn_str.c_str(), config.ssl.alpn_str.length());
     }
     if (config.ssl.reuse_session)
     {
@@ -180,12 +180,31 @@ void anole_t::async_accept()
         session = std::make_shared<anole::client_session_t>(config_, io_context_, ssl_context_);
     }
     socket_acceptor_.async_accept(session->accept_socket(), [this, session](const boost::system::error_code err) {
-
+        if (boost::asio::error::operation_aborted == err)
+        {
+            return;
+        }
+        if (!err)
+        {
+            boost::system::error_code code;
+            // using tcp_endpoint_t = boost::asio::basic_socket<boost::asio::ip::tcp>::endpoint_type;
+            auto endpoint = session->accept_socket().remote_endpoint(code);
+            if (!code)
+            {
+                printf("%s\n", endpoint.address().to_string().c_str());
+                session->start();
+            }
+        }
+        this->async_accept();
     });
 }
 
 void anole_t::run()
 {
-
+    this->async_accept();
+    boost::asio::ip::tcp::endpoint local_endpoint = socket_acceptor_.local_endpoint();
+    printf("anole service (%s) started at %s:%s", config_.run_type.c_str(), local_endpoint.address().to_string().c_str(), anole::to_string(local_endpoint.port()).c_str());
+    io_context_.run();
+    printf("anole service (%s) stopped", config_.run_type.c_str());
 }
 

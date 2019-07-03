@@ -13,6 +13,12 @@ void init_config(slothjson::config_t& config)
     {
         config.rt = SERVER;
     }
+
+    for (auto& proto: config.ssl.alpn)
+    {
+        config.ssl.alpn_str += (char)((unsigned char)(proto.length()));
+        config.ssl.alpn_str += proto;
+    }
 }
 
 namespace ssl { \
