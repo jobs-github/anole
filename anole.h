@@ -12,6 +12,8 @@ class anole_t
 public:
     anole_t(slothjson::config_t& config);
     void run();
+    void stop();
+    boost::asio::io_context& service();
 private:
     bool init_server(slothjson::config_t& config, SSL_CTX * native_handle);
     void init_client(slothjson::config_t& config, SSL_CTX * native_handle);

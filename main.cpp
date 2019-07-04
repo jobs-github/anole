@@ -1,4 +1,5 @@
 #include <string>
+#include <boost/asio/signal_set.hpp>
 #include "anole.h"
 #include "utils.h"
 
@@ -20,6 +21,24 @@ int main(int argc, char * argv[])
     anole::init_config(config);
 
     anole_t anole(config);
+
+    boost::asio::signal_set sig(anole.service());
+    sig.add(SIGINT);
+    sig.add(SIGTERM);
+    sig.async_wait([&](const boost::system::error_code error, int signum){
+        if (error)
+        {
+            return;
+        }
+        switch (signum)
+        {
+            case SIGINT:
+            case SIGTERM:
+                anole.stop();
+                break;
+        }
+    });
+
     anole.run();
     return 0;
 }

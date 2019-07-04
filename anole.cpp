@@ -209,3 +209,14 @@ void anole_t::run()
     printf("anole service (%s) stopped", config_.run_type.c_str());
 }
 
+void anole_t::stop()
+{
+    boost::system::error_code ec;
+    socket_acceptor_.cancel(ec);
+    io_context_.stop();
+}
+
+boost::asio::io_context& anole_t::service()
+{
+    return io_context_;
+}
