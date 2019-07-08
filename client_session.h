@@ -9,14 +9,13 @@ namespace anole {\
 class client_session_t : public session_t
 {
 public:
-    client_session_t(
-        const slothjson::config_t& config,
-        boost::asio::io_context& io_context,
-        boost::asio::ssl::context& ssl_context);
+    client_session_t(const slothjson::config_t& config, boost::asio::io_context& io_context, boost::asio::ssl::context& ssl_context);
+    ~client_session_t() {}
 
     void start();
     boost::asio::ip::tcp::socket& accept_socket();
 private:
+    session_data_t sess_;
     boost::asio::ip::tcp::socket in_socket_;
 };
 

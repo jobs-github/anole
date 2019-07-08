@@ -26,11 +26,7 @@
                 ["[string]", "alpn"],
                 ["string", "alpn_str"],
                 ["bool", "reuse_session", "true"],
-                ["bool", "session_ticket", "false"],
-                ["int", "session_timeout", "600"],
-                ["string", "plain_http_response"],
-                ["string", "curves"],
-                ["string", "dhparam"]
+                ["int", "session_timeout", "600"]
             ]
         },
         {

@@ -24,7 +24,6 @@ private:
     boost::asio::io_context io_context_;
     boost::asio::ip::tcp::acceptor socket_acceptor_;
     boost::asio::ssl::context ssl_context_;
-    std::string plain_http_response_;
 };
 
 #endif // __anole_20190621154321_h__

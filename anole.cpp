@@ -22,10 +22,7 @@ ssl_context_(boost::asio::ssl::context::sslv23)
         | boost::asio::ssl::context::no_sslv2
         | boost::asio::ssl::context::no_sslv3
         | boost::asio::ssl::context::single_dh_use);
-    if (config.ssl.curves != "")
-    {
-        SSL_CTX_set1_curves_list(native_handle, config.ssl.curves.c_str());
-    }
+
     if (anole::SERVER == config.rt)
     {
         if (!init_server(config, native_handle))
@@ -71,34 +68,16 @@ bool anole_t::init_server(slothjson::config_t& config, SSL_CTX * native_handle)
     if (config.ssl.reuse_session)
     {
         SSL_CTX_set_timeout(native_handle, config.ssl.session_timeout);
-        if (!config.ssl.session_ticket)
-        {
-            SSL_CTX_set_options(native_handle, SSL_OP_NO_TICKET);
-        }
     }
     else
     {
         SSL_CTX_set_session_cache_mode(native_handle, SSL_SESS_CACHE_OFF);
-        SSL_CTX_set_options(native_handle, SSL_OP_NO_TICKET);
     }
-    if (config.ssl.plain_http_response != "")
-    {
-        std::ifstream ifs(config.ssl.plain_http_response, std::ios::binary);
-        if (!ifs.is_open())
-        {
-            return false;
-        }
-        this->plain_http_response_ = std::string(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
-    }
-    if (config.ssl.dhparam != "")
-    {
-        ssl_context_.use_tmp_dh_file(config.ssl.dhparam);
-    }
-    else
-    {
-        auto dhparam = anole::ssl::default_dhparam();
-        ssl_context_.use_tmp_dh(boost::asio::const_buffer(dhparam.data, dhparam.len));
-    }
+    SSL_CTX_set_options(native_handle, SSL_OP_NO_TICKET);
+
+    auto dhparam = anole::ssl::default_dhparam();
+    ssl_context_.use_tmp_dh(boost::asio::const_buffer(dhparam.data, dhparam.len));
+
     SSL_CTX_set_ecdh_auto(native_handle, 1);
     return true;
 }
@@ -141,15 +120,9 @@ void anole_t::init_client(slothjson::config_t& config, SSL_CTX * native_handle)
     {
         SSL_CTX_set_session_cache_mode(native_handle, SSL_SESS_CACHE_CLIENT);
         anole::ssl::set_callback(native_handle);
-        if (!config.ssl.session_ticket)
-        {
-            SSL_CTX_set_options(native_handle, SSL_OP_NO_TICKET);
-        }
     }
-    else
-    {
-        SSL_CTX_set_options(native_handle, SSL_OP_NO_TICKET);
-    }
+
+    SSL_CTX_set_options(native_handle, SSL_OP_NO_TICKET);
 }
 
 void anole_t::init_tcp(slothjson::config_t& config)
@@ -174,7 +147,7 @@ void anole_t::async_accept()
     std::shared_ptr<anole::session_t> session(nullptr);
     if (anole::SERVER == config_.rt)
     {
-        session = std::make_shared<anole::server_session_t>(config_, io_context_, ssl_context_, plain_http_response_);
+        session = std::make_shared<anole::server_session_t>(config_, io_context_, ssl_context_);
     }
     else if (anole::CLIENT == config_.rt)
     {
