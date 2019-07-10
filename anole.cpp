@@ -160,10 +160,10 @@ void anole_t::async_accept()
         }
         if (!err)
         {
-            boost::system::error_code code;
+            boost::system::error_code err;
             // using tcp_endpoint_t = boost::asio::basic_socket<boost::asio::ip::tcp>::endpoint_type;
-            auto endpoint = session->accept_socket().remote_endpoint(code);
-            if (!code)
+            auto endpoint = session->accept_socket().remote_endpoint(err);
+            if (!err)
             {
                 printf("%s\n", endpoint.address().to_string().c_str());
                 session->start();
@@ -184,8 +184,8 @@ void anole_t::run()
 
 void anole_t::stop()
 {
-    boost::system::error_code ec;
-    socket_acceptor_.cancel(ec);
+    boost::system::error_code err;
+    socket_acceptor_.cancel(err);
     io_context_.stop();
 }
 

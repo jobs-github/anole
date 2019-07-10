@@ -16,7 +16,7 @@ int sock5_address_t::decode(const std::string& data)
     {
         return decode_ipv4(data);
     }
-    else if (DOMAIN == address_type)
+    else if (DOMAIN_NAME == address_type)
     {
         return decode_domain(data);
     }
@@ -29,7 +29,7 @@ int sock5_address_t::decode(const std::string& data)
 
 bool sock5_address_t::is_valid(char address_type)
 {
-    return IPv4 == address_type || DOMAIN == address_type || IPv6 == address_type;
+    return IPv4 == address_type || DOMAIN_NAME == address_type || IPv6 == address_type;
 }
 
 int sock5_address_t::decode_ipv4(const std::string& data)
@@ -84,27 +84,27 @@ uint16_t sock5_address_t::decode_port(const std::string& data, int offset)
 //---------|----|-------|------------|-------|----|----|--------
 // password|CRLF|command|address_type|address|port|CRLF|payload
 //---------|----|-------|------------|-------|----|----|--------
-int request_t::decode(const std::string& data)
+bool request_t::decode(const std::string& data)
 {
     size_t pos = data.find(CRLF.data);
     if (std::string::npos == pos)
     {
-        return -1;
+        return false;
     }
     password = data.substr(0, pos);
     payload = data.substr(pos + CRLF.len);
     if (payload.size() < 1 || (payload[0] != CONNECT))
     {
-        return -1;
+        return false;
     }
     command = static_cast<command_e>(payload[0]);
     int address_len = address.decode(data.substr(1));
     if (-1 == address_len || payload.size() < size_t(address_len) + 3 || payload.substr(address_len + 1, 2) != CRLF.data)
     {
-        return -1;
+        return false;
     }
     payload = payload.substr(address_len + 3);
-    return data.size();
+    return true;
 }
 
 } // anole

@@ -1,7 +1,23 @@
 #include "utils.h"
 #include <list>
+#include <openssl/sha.h>
 
 namespace anole { \
+
+std::string sha224(const std::string& plain)
+{
+    uint8_t digest[SHA224_DIGEST_LENGTH];
+    SHA256_CTX ctx;
+    SHA224_Init(&ctx);
+    SHA224_Update(&ctx, plain.c_str(), plain.size());
+    SHA224_Final(digest, &ctx);
+    char cipher[(SHA224_DIGEST_LENGTH << 1) + 1];
+    for (int i = 0; i < SHA224_DIGEST_LENGTH; i++)
+    {
+        sprintf(cipher + (i << 1), "%02x", (unsigned int)digest[i]);
+    }
+    return std::string(cipher);
+}
 
 void init_config(slothjson::config_t& config)
 {
@@ -12,6 +28,11 @@ void init_config(slothjson::config_t& config)
     else
     {
         config.rt = SERVER;
+    }
+
+    for (auto& pwd: config.password)
+    {
+        config.pwd[sha224(pwd)] = pwd;
     }
 
     for (auto& proto: config.ssl.alpn)

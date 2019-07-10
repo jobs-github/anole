@@ -25,8 +25,8 @@ int main(int argc, char * argv[])
     boost::asio::signal_set sig(anole.service());
     sig.add(SIGINT);
     sig.add(SIGTERM);
-    sig.async_wait([&](const boost::system::error_code error, int signum){
-        if (error)
+    sig.async_wait([&](const boost::system::error_code err, int signum){
+        if (err)
         {
             return;
         }

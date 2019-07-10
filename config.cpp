@@ -234,6 +234,12 @@ config_t::config_t()
     __skip_remote_port = false;
     __json_has_remote_port = false;
 
+    __skip_password = false;
+    __json_has_password = false;
+
+    __skip_pwd = false;
+    __json_has_pwd = false;
+
     run_type = "client";
     __skip_run_type = false;
     __json_has_run_type = false;
@@ -255,6 +261,8 @@ config_t& config_t::operator=(const config_t& obj_val)
     this->local_port = obj_val.local_port;
     this->remote_addr = obj_val.remote_addr;
     this->remote_port = obj_val.remote_port;
+    this->password = obj_val.password;
+    this->pwd = obj_val.pwd;
     this->run_type = obj_val.run_type;
     this->rt = obj_val.rt;
     this->ssl = obj_val.ssl;
@@ -268,6 +276,8 @@ bool config_t::operator==(const config_t& obj_val) const
     if (!(this->local_port == obj_val.local_port)) return false;
     if (!(this->remote_addr == obj_val.remote_addr)) return false;
     if (!(this->remote_port == obj_val.remote_port)) return false;
+    if (!(this->password == obj_val.password)) return false;
+    if (!(this->pwd == obj_val.pwd)) return false;
     if (!(this->run_type == obj_val.run_type)) return false;
     if (!(this->rt == obj_val.rt)) return false;
     if (!(this->ssl == obj_val.ssl)) return false;
@@ -284,6 +294,8 @@ bool config_t::encode(allocator_t& alloc, rapidjson::Value& json_val) const
         if (!__skip_local_port && !encode_field(local_port, "local_port", alloc, json_val)) break;
         if (!__skip_remote_addr && !encode_field(remote_addr, "remote_addr", alloc, json_val)) break;
         if (!__skip_remote_port && !encode_field(remote_port, "remote_port", alloc, json_val)) break;
+        if (!__skip_password && !encode_field(password, "password", alloc, json_val)) break;
+        if (!__skip_pwd && !encode_field(pwd, "pwd", alloc, json_val)) break;
         if (!__skip_run_type && !encode_field(run_type, "run_type", alloc, json_val)) break;
         if (!__skip_rt && !encode_field(rt, "rt", alloc, json_val)) break;
         if (!__skip_ssl && !encode_field(ssl, "ssl", alloc, json_val)) break;
@@ -303,6 +315,8 @@ bool config_t::decode(const rapidjson::Value& json_val)
         if (!decode_field(json_val, "local_port", local_port, __json_has_local_port)) break;
         if (!decode_field(json_val, "remote_addr", remote_addr, __json_has_remote_addr)) break;
         if (!decode_field(json_val, "remote_port", remote_port, __json_has_remote_port)) break;
+        if (!decode_field(json_val, "password", password, __json_has_password)) break;
+        if (!decode_field(json_val, "pwd", pwd, __json_has_pwd)) break;
         if (!decode_field(json_val, "run_type", run_type, __json_has_run_type)) break;
         if (!decode_field(json_val, "rt", rt, __json_has_rt)) break;
         if (!decode_field(json_val, "ssl", ssl, __json_has_ssl)) break;

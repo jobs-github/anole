@@ -1,5 +1,6 @@
 #include "server_session.h"
 #include "utils.h"
+#include "anole_proto.h"
 
 namespace anole {\
 
@@ -59,7 +60,46 @@ void server_session_t::in_recv(const std::string& buf)
 {
     if (HANDSHAKE == status_)
     {
-        // TODO
+        anole::request_t req;
+        bool ok = req.decode(buf);
+        // check password
+        if (ok)
+        {
+            auto it = sess_.config.pwd.find(req.password);
+            if (sess_.config.pwd.end() == it)
+            {
+                ok = false;
+                printf("%s:%s valid anole request but incorrect password %s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), req.password.c_str());
+            }
+            else
+            {
+                printf("%s:%s authenticated as %s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), it->second.c_str());
+            }
+        }
+        std::string query_addr = ok ? req.address.address : sess_.config.remote_addr;
+        std::string query_port = anole::to_string((ok ? req.address.port : sess_.config.remote_port));
+        if (ok)
+        {
+            sess_.out_write_buf = req.payload;
+            printf("%s:%s requested connection to %s:%s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), query_addr.c_str(), query_port.c_str());
+        }
+        else
+        {
+            sess_.out_write_buf = buf;
+            printf("%s:%s not anole request, connecting to  %s:%s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), query_addr.c_str(), query_port.c_str());
+        }
+        sess_.sent_len = sess_.out_write_buf.size();
+        auto self = shared_from_this();
+        sess_.resolver.async_resolve(query_addr, query_port, [this, self, query_addr, query_port](const boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type rc){
+            if (err || rc.size() < 1)
+            {
+                printf("%s:%s cannot resolve remote server hostname  %s:%s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), query_addr.c_str(), query_port.c_str());
+                destory();
+                return;
+            }
+            // boost::asio::ip::basic_resolver_entry<boost::asio::ip::tcp>
+            // auto it = rc.begin();
+        });
     }
 }
 

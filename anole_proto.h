@@ -16,8 +16,8 @@ struct sock5_address_t
     enum address_type_e
     {
         IPv4 = SOCK5_ADDR_IPV4,
-        DOMAIN = SOCK5_ADDR_DOMAIN,
-        IPv6 = SOCK5_ADDR_IPV6
+        DOMAIN_NAME = SOCK5_ADDR_DOMAIN,
+        IPv6 = SOCK5_ADDR_IPV6,
     } address_type;
     std::string address;
     uint16_t port;
@@ -39,7 +39,7 @@ struct request_t
     } command;
     sock5_address_t address;
     std::string payload;
-    int decode(const std::string& data);
+    bool decode(const std::string& data);
 
 };
 

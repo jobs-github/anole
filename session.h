@@ -19,7 +19,9 @@ struct session_data_t
     const slothjson::config_t& config;
     uint8_t in_read_buf[BUF_SIZE];
     uint64_t recv_len;
+    uint64_t sent_len;
     time_t start_time;
+    std::string out_write_buf;
     boost::asio::ip::tcp::resolver resolver;
     boost::asio::ip::tcp::endpoint in_endpoint;
 
