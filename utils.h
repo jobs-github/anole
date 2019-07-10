@@ -8,6 +8,8 @@
 
 namespace anole { \
 
+#define make_str(s) { (char *) s, sizeof(s) - 1 }
+
 struct c_str_t
 {
     char * data;

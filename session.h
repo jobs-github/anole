@@ -9,12 +9,13 @@
 
 namespace anole { \
 
+enum
+{
+    BUF_SIZE = 8192,
+};
+
 struct session_data_t
 {
-    enum
-    {
-        BUF_SIZE = 8192,
-    };
     const slothjson::config_t& config;
     uint8_t in_read_buf[BUF_SIZE];
     uint64_t recv_len;

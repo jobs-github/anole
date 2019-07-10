@@ -57,7 +57,7 @@ bool anole_t::init_server(slothjson::config_t& config, SSL_CTX * native_handle)
     {
         SSL_CTX_set_alpn_select_cb(native_handle, [](SSL*, const unsigned char **out, unsigned char *outlen, const unsigned char *in, unsigned int inlen, void *config) -> int {
             auto alpn = ((slothjson::config_t *)config)->ssl.alpn_str.c_str();
-            auto alpn_len = ((slothjson::config_t *)config)->ssl.alpn_str.length();
+            auto alpn_len = ((slothjson::config_t *)config)->ssl.alpn_str.size();
             if (OPENSSL_NPN_NEGOTIATED != SSL_select_next_proto((unsigned char **)out, outlen, (const unsigned char *)alpn, alpn_len, in, inlen))
             {
                 return SSL_TLSEXT_ERR_NOACK;
@@ -114,7 +114,7 @@ void anole_t::init_client(slothjson::config_t& config, SSL_CTX * native_handle)
     }
     if (config.ssl.alpn_str != "")
     {
-        SSL_CTX_set_alpn_protos(native_handle, (unsigned char*)config.ssl.alpn_str.c_str(), config.ssl.alpn_str.length());
+        SSL_CTX_set_alpn_protos(native_handle, (unsigned char*)config.ssl.alpn_str.c_str(), config.ssl.alpn_str.size());
     }
     if (config.ssl.reuse_session)
     {

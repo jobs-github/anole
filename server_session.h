@@ -16,7 +16,14 @@ public:
     boost::asio::ip::tcp::socket& accept_socket();
 private:
     void destory();
+    void in_async_read();
+    void in_recv(const std::string& buf);
 private:
+    enum status_e
+    {
+        HANDSHAKE,
+        DESTORY
+    } status_;
     session_data_t sess_;
     boost::asio::ssl::stream<boost::asio::ip::tcp::socket> in_socket_;
 };

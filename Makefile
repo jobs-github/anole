@@ -23,6 +23,7 @@ OBJECTS		= $(BIN)main.o \
 	$(BIN)server_session.o \
 	$(BIN)client_session.o \
 	$(BIN)session.o \
+	$(BIN)anole_proto.o \
 	$(BIN)config.o \
 	$(BIN)utils.o \
 	$(BIN)slothjson.o
@@ -50,6 +51,9 @@ $(BIN)client_session.o:	$(CWD)client_session.cpp
 	$(CXX) $(FLAGS) $(INCS) -c -o $@ $<
 
 $(BIN)session.o:	$(CWD)session.cpp
+	$(CXX) $(FLAGS) $(INCS) -c -o $@ $<
+
+$(BIN)anole_proto.o:	$(CWD)anole_proto.cpp
 	$(CXX) $(FLAGS) $(INCS) -c -o $@ $<
 
 $(BIN)config.o:	$(CWD)config.cpp
