@@ -218,8 +218,71 @@ bool decode(const rapidjson::Value& json_val, ssl_config_t& obj_val)
     return obj_val.decode(json_val);
 }
 
+zlog_t::zlog_t()
+{
+    __skip_conf = false;
+    __json_has_conf = false;
+
+    __skip_default_category = false;
+    __json_has_default_category = false;
+}
+
+zlog_t& zlog_t::operator=(const zlog_t& obj_val)
+{
+    this->conf = obj_val.conf;
+    this->default_category = obj_val.default_category;
+    return *this;
+}
+
+bool zlog_t::operator==(const zlog_t& obj_val) const
+{
+    if (!(this->conf == obj_val.conf)) return false;
+    if (!(this->default_category == obj_val.default_category)) return false;
+    return true;
+}
+
+bool zlog_t::encode(allocator_t& alloc, rapidjson::Value& json_val) const
+{
+    do
+    {
+        json_val.SetObject();
+        if (!__skip_conf && !encode_field(conf, "conf", alloc, json_val)) break;
+        if (!__skip_default_category && !encode_field(default_category, "default_category", alloc, json_val)) break;
+
+        return true;
+    } while (0);
+
+    return false;
+}
+
+bool zlog_t::decode(const rapidjson::Value& json_val)
+{
+    do
+    {
+        if (!decode_field(json_val, "conf", conf, __json_has_conf)) break;
+        if (!decode_field(json_val, "default_category", default_category, __json_has_default_category)) break;
+
+        return true;
+    } while (0);
+
+    return false;
+}
+
+bool encode(const zlog_t& obj_val, allocator_t& alloc, rapidjson::Value& json_val)
+{
+    return obj_val.encode(alloc, json_val);
+}
+
+bool decode(const rapidjson::Value& json_val, zlog_t& obj_val)
+{
+    return obj_val.decode(json_val);
+}
+
 config_t::config_t()
 {
+    __skip_logger = false;
+    __json_has_logger = false;
+
     __skip_local_addr = false;
     __json_has_local_addr = false;
 
@@ -257,6 +320,7 @@ config_t::config_t()
 
 config_t& config_t::operator=(const config_t& obj_val)
 {
+    this->logger = obj_val.logger;
     this->local_addr = obj_val.local_addr;
     this->local_port = obj_val.local_port;
     this->remote_addr = obj_val.remote_addr;
@@ -272,6 +336,7 @@ config_t& config_t::operator=(const config_t& obj_val)
 
 bool config_t::operator==(const config_t& obj_val) const
 {
+    if (!(this->logger == obj_val.logger)) return false;
     if (!(this->local_addr == obj_val.local_addr)) return false;
     if (!(this->local_port == obj_val.local_port)) return false;
     if (!(this->remote_addr == obj_val.remote_addr)) return false;
@@ -290,6 +355,7 @@ bool config_t::encode(allocator_t& alloc, rapidjson::Value& json_val) const
     do
     {
         json_val.SetObject();
+        if (!__skip_logger && !encode_field(logger, "logger", alloc, json_val)) break;
         if (!__skip_local_addr && !encode_field(local_addr, "local_addr", alloc, json_val)) break;
         if (!__skip_local_port && !encode_field(local_port, "local_port", alloc, json_val)) break;
         if (!__skip_remote_addr && !encode_field(remote_addr, "remote_addr", alloc, json_val)) break;
@@ -311,6 +377,7 @@ bool config_t::decode(const rapidjson::Value& json_val)
 {
     do
     {
+        if (!decode_field(json_val, "logger", logger, __json_has_logger)) break;
         if (!decode_field(json_val, "local_addr", local_addr, __json_has_local_addr)) break;
         if (!decode_field(json_val, "local_port", local_port, __json_has_local_port)) break;
         if (!decode_field(json_val, "remote_addr", remote_addr, __json_has_remote_addr)) break;

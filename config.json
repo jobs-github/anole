@@ -30,9 +30,18 @@
             ]
         },
         {
+            "type": "zlog_t",
+            "members":
+            [
+                ["string", "conf"],
+                ["string", "default_category"]
+            ]
+        },
+        {
             "type": "config_t",
             "members":
             [
+                ["zlog_t", "logger"],
                 ["string", "local_addr"],
                 ["uint16_t", "local_port"],
                 ["string", "remote_addr"],

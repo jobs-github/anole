@@ -7,16 +7,19 @@
 CC = gcc -std=gnu99
 CXX = g++
 BIN = ./
-INCLUDE = -I /usr/local/boost1.66/include \
+INCLUDE = -I /usr/local/include \
+	-I /usr/local/boost1.66/include \
 	-I slothjson \
-	-I slothjson/rapidjson \
+	-I slothjson/rapidjson
 
 LIB = -lboost_system \
 	-lpthread \
 	-lcrypto \
-	-lssl
+	-lssl \
+	-lzlog
+
 FLAGS = -std=c++11 -fPIC -O0 -g3 -Wall -fmessage-length=0 -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE
-LIB_3RD = 
+LIB_3RD = -L /usr/local/lib
 
 OBJECTS		= $(BIN)main.o \
 	$(BIN)anole.o \

@@ -20,6 +20,16 @@ int main(int argc, char * argv[])
 
     anole::init_config(config);
 
+    if (0 != zlog_init(config.logger.conf.c_str()))
+    {
+        printf("zlog_init fail\n");
+        return -1;
+    }
+    anole::init_logger(config.logger.default_category.c_str());
+
+    anole::set_mdc("anole");
+    zlog_debug(anole::cat(), "init anole");
+
     anole_t anole(config);
 
     boost::asio::signal_set sig(anole.service());
@@ -35,10 +45,12 @@ int main(int argc, char * argv[])
             case SIGINT:
             case SIGTERM:
                 anole.stop();
+                zlog_fini();
                 break;
         }
     });
 
+    zlog_debug(anole::cat(), "start anole");
     anole.run();
     return 0;
 }

@@ -4,6 +4,23 @@
 
 namespace anole { \
 
+static zlog_category_t * g_default_category = NULL;
+
+void init_logger(const std::string& category_name)
+{
+    g_default_category = zlog_get_category(category_name.c_str());
+}
+
+zlog_category_t * cat()
+{
+    return g_default_category;
+}
+
+void set_mdc(const char * mdc)
+{
+    zlog_put_mdc(MDC_KEY, mdc);
+}
+
 std::string sha224(const std::string& plain)
 {
     uint8_t digest[SHA224_DIGEST_LENGTH];

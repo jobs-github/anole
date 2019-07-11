@@ -1,4 +1,9 @@
 {
+    "logger":
+    {
+        "conf": "zlog.conf",
+        "default_category": "anole"
+    },
     "run_type": "server",
     "local_addr": "0.0.0.0",
     "local_port": 443,

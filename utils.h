@@ -5,10 +5,12 @@
 #include <string>
 #include <sstream>
 #include <openssl/ssl.h>
+#include <zlog.h>
 
 namespace anole { \
 
 #define make_str(s) { (char *) s, sizeof(s) - 1 }
+#define MDC_KEY  "mdc"
 
 struct c_str_t
 {
@@ -23,6 +25,10 @@ std::string to_string(const T& n)
     ss << n ;
     return ss.str() ;
 }
+
+void init_logger(const std::string& category_name);
+zlog_category_t * cat();
+void set_mdc(const char * mdc);
 
 enum run_type_t
 {

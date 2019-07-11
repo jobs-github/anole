@@ -25,7 +25,7 @@ void server_session_t::start()
     in_socket_.async_handshake(boost::asio::ssl::stream_base::server, [this, self](const boost::system::error_code err){
         if (err)
         {
-            printf("%s:%s SSL handshake failed: %s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), err.message().c_str());
+            zlog_error(anole::cat(), "%s:%s SSL handshake failed: %s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), err.message().c_str());
             destory();
             return;
         }
@@ -69,11 +69,11 @@ void server_session_t::in_recv(const std::string& buf)
             if (sess_.config.pwd.end() == it)
             {
                 ok = false;
-                printf("%s:%s valid anole request but incorrect password %s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), req.password.c_str());
+                zlog_warn(anole::cat(), "%s:%s valid anole request but incorrect password %s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), req.password.c_str());
             }
             else
             {
-                printf("%s:%s authenticated as %s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), it->second.c_str());
+                zlog_error(anole::cat(), "%s:%s authenticated as %s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), it->second.c_str());
             }
         }
         std::string query_addr = ok ? req.address.address : sess_.config.remote_addr;
@@ -81,19 +81,19 @@ void server_session_t::in_recv(const std::string& buf)
         if (ok)
         {
             sess_.out_write_buf = req.payload;
-            printf("%s:%s requested connection to %s:%s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), query_addr.c_str(), query_port.c_str());
+            zlog_debug(anole::cat(), "%s:%s requested connection to %s:%s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), query_addr.c_str(), query_port.c_str());
         }
         else
         {
             sess_.out_write_buf = buf;
-            printf("%s:%s not anole request, connecting to  %s:%s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), query_addr.c_str(), query_port.c_str());
+            zlog_warn(anole::cat(), "%s:%s not anole request, connecting to  %s:%s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), query_addr.c_str(), query_port.c_str());
         }
         sess_.sent_len = sess_.out_write_buf.size();
         auto self = shared_from_this();
         sess_.resolver.async_resolve(query_addr, query_port, [this, self, query_addr, query_port](const boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type rc){
             if (err || rc.size() < 1)
             {
-                printf("%s:%s cannot resolve remote server hostname  %s:%s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), query_addr.c_str(), query_port.c_str());
+                zlog_error(anole::cat(), "%s:%s cannot resolve remote server hostname  %s:%s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), query_addr.c_str(), query_port.c_str());
                 destory();
                 return;
             }

@@ -165,7 +165,7 @@ void anole_t::async_accept()
             auto endpoint = session->accept_socket().remote_endpoint(err);
             if (!err)
             {
-                printf("%s\n", endpoint.address().to_string().c_str());
+                zlog_debug(anole::cat(), "%s\n", endpoint.address().to_string().c_str());
                 session->start();
             }
         }
@@ -177,9 +177,9 @@ void anole_t::run()
 {
     this->async_accept();
     boost::asio::ip::tcp::endpoint local_endpoint = socket_acceptor_.local_endpoint();
-    printf("anole service (%s) started at %s:%s", config_.run_type.c_str(), local_endpoint.address().to_string().c_str(), anole::to_string(local_endpoint.port()).c_str());
+    zlog_debug(anole::cat(), "anole service (%s) started at %s:%s", config_.run_type.c_str(), local_endpoint.address().to_string().c_str(), anole::to_string(local_endpoint.port()).c_str());
     io_context_.run();
-    printf("anole service (%s) stopped", config_.run_type.c_str());
+    zlog_debug(anole::cat(), "anole service (%s) stopped", config_.run_type.c_str());
 }
 
 void anole_t::stop()
