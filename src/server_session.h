@@ -18,14 +18,20 @@ private:
     void destory();
     void in_async_read();
     void in_recv(const std::string& buf);
+    void in_recv_at_handshake(const std::string& buf);
+    void post_resolve_remote(const std::string& query_addr, const std::string& query_port, const boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type rc);
+    void out_async_read();
+    void out_async_write(const std::string& buf);
 private:
     enum status_e
     {
         HANDSHAKE,
+        FORWARD,
         DESTORY
     } status_;
     session_data_t sess_;
     boost::asio::ssl::stream<boost::asio::ip::tcp::socket> in_socket_;
+    boost::asio::ip::tcp::socket out_socket_;
 };
 
 } // anole

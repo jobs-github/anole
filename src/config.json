@@ -6,9 +6,7 @@
             "members":
             [
                 ["bool", "no_delay", "true"],
-                ["bool", "keep_alive", "true"],
-                ["bool", "fast_open", "false"],
-                ["int", "fast_open_qlen", "20"]
+                ["bool", "keep_alive", "true"]
             ]
         },
         {

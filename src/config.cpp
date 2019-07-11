@@ -14,22 +14,12 @@ tcp_config_t::tcp_config_t()
     keep_alive = true;
     __skip_keep_alive = false;
     __json_has_keep_alive = false;
-
-    fast_open = false;
-    __skip_fast_open = false;
-    __json_has_fast_open = false;
-
-    fast_open_qlen = 20;
-    __skip_fast_open_qlen = false;
-    __json_has_fast_open_qlen = false;
 }
 
 tcp_config_t& tcp_config_t::operator=(const tcp_config_t& obj_val)
 {
     this->no_delay = obj_val.no_delay;
     this->keep_alive = obj_val.keep_alive;
-    this->fast_open = obj_val.fast_open;
-    this->fast_open_qlen = obj_val.fast_open_qlen;
     return *this;
 }
 
@@ -37,8 +27,6 @@ bool tcp_config_t::operator==(const tcp_config_t& obj_val) const
 {
     if (!(this->no_delay == obj_val.no_delay)) return false;
     if (!(this->keep_alive == obj_val.keep_alive)) return false;
-    if (!(this->fast_open == obj_val.fast_open)) return false;
-    if (!(this->fast_open_qlen == obj_val.fast_open_qlen)) return false;
     return true;
 }
 
@@ -49,8 +37,6 @@ bool tcp_config_t::encode(allocator_t& alloc, rapidjson::Value& json_val) const
         json_val.SetObject();
         if (!__skip_no_delay && !encode_field(no_delay, "no_delay", alloc, json_val)) break;
         if (!__skip_keep_alive && !encode_field(keep_alive, "keep_alive", alloc, json_val)) break;
-        if (!__skip_fast_open && !encode_field(fast_open, "fast_open", alloc, json_val)) break;
-        if (!__skip_fast_open_qlen && !encode_field(fast_open_qlen, "fast_open_qlen", alloc, json_val)) break;
 
         return true;
     } while (0);
@@ -64,8 +50,6 @@ bool tcp_config_t::decode(const rapidjson::Value& json_val)
     {
         if (!decode_field(json_val, "no_delay", no_delay, __json_has_no_delay)) break;
         if (!decode_field(json_val, "keep_alive", keep_alive, __json_has_keep_alive)) break;
-        if (!decode_field(json_val, "fast_open", fast_open, __json_has_fast_open)) break;
-        if (!decode_field(json_val, "fast_open_qlen", fast_open_qlen, __json_has_fast_open_qlen)) break;
 
         return true;
     } while (0);

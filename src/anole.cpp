@@ -135,11 +135,6 @@ void anole_t::init_tcp(slothjson::config_t& config)
     {
         socket_acceptor_.set_option(boost::asio::socket_base::keep_alive(true));
     }
-    if (config.tcp.fast_open)
-    {
-        boost::system::error_code err;
-        socket_acceptor_.set_option(boost::asio::detail::socket_option::integer<IPPROTO_TCP, TCP_FASTOPEN>(config.tcp.fast_open_qlen));
-    }
 }
 
 void anole_t::async_accept()
@@ -161,7 +156,6 @@ void anole_t::async_accept()
         if (!err)
         {
             boost::system::error_code err;
-            // using tcp_endpoint_t = boost::asio::basic_socket<boost::asio::ip::tcp>::endpoint_type;
             auto endpoint = session->accept_socket().remote_endpoint(err);
             if (!err)
             {
@@ -169,13 +163,13 @@ void anole_t::async_accept()
                 session->start();
             }
         }
-        this->async_accept();
+        async_accept();
     });
 }
 
 void anole_t::run()
 {
-    this->async_accept();
+    async_accept();
     boost::asio::ip::tcp::endpoint local_endpoint = socket_acceptor_.local_endpoint();
     zlog_debug(anole::cat(), "anole service (%s) started at %s:%s", config_.run_type.c_str(), local_endpoint.address().to_string().c_str(), anole::to_string(local_endpoint.port()).c_str());
     io_context_.run();
