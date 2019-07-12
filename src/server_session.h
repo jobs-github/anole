@@ -16,12 +16,16 @@ public:
     boost::asio::ip::tcp::socket& accept_socket();
 private:
     void destory();
+
     void in_async_read();
+    void out_async_read();
+
+    void in_async_write(const std::string& buf);
+    void out_async_write(const std::string& buf);
+
     void on_handshake(const std::string& buf);
     void on_resolve(const std::string& query_addr, const std::string& query_port, const boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type rc);
     void on_connect(const std::string& query_addr, const std::string& query_port, boost::system::error_code err);
-    void out_async_read();
-    void out_async_write(const std::string& buf);
 private:
     enum status_e
     {

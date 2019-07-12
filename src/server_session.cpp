@@ -1,4 +1,5 @@
 #include "server_session.h"
+#include <chrono>
 #include "utils.h"
 #include "anole_proto.h"
 
@@ -41,7 +42,38 @@ boost::asio::ip::tcp::socket& server_session_t::accept_socket()
 
 void server_session_t::destory()
 {
-
+    if (DESTORY == status_)
+    {
+        return;
+    }
+    status_ = DESTORY;
+    zlog_debug(anole::cat(), "%s:%s disconnected, %d bytes received, %d bytes sent, lasted for %s sec", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), sess_.recv_len, sess_.sent_len, time(NULL) - sess_.start_time);
+    boost::system::error_code err;
+    sess_.resolver.cancel();
+    if (out_socket_.is_open())
+    {
+        out_socket_.cancel(err);
+        out_socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, err);
+        out_socket_.close(err);
+    }
+    if (in_socket_.next_layer().is_open())
+    {
+        auto self = shared_from_this();
+        auto ssl_shutdown_cb = [this, self](const boost::system::error_code code){
+            if (boost::asio::error::operation_aborted == code)
+            {
+                boost::system::error_code err;
+                sess_.ssl_shutdown_timer.cancel();
+                in_socket_.next_layer().cancel(err);
+                in_socket_.next_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, err);
+                in_socket_.next_layer().close(err);
+            }
+        };
+        in_socket_.next_layer().cancel(err);
+        in_socket_.async_shutdown(ssl_shutdown_cb);
+        sess_.ssl_shutdown_timer.expires_after(std::chrono::seconds(SSL_SHUTDOWN_TIMEOUT));
+        sess_.ssl_shutdown_timer.async_wait(ssl_shutdown_cb);
+    }
 }
 
 void server_session_t::in_async_read()
@@ -145,6 +177,7 @@ void server_session_t::on_resolve(const std::string& query_addr, const std::stri
     });
 }
 
+// out_async_read | in_async_read
 void server_session_t::on_connect(const std::string& query_addr, const std::string& query_port, boost::system::error_code err)
 {
     if (err)
@@ -170,7 +203,20 @@ void server_session_t::on_connect(const std::string& query_addr, const std::stri
 
 void server_session_t::out_async_read()
 {
-
+    auto self = shared_from_this();
+    out_socket_.async_read_some(boost::asio::buffer(sess_.out_read_buf, BUF_SIZE), [this, self](const boost::system::error_code err, size_t sz){
+        if (err)
+        {
+            destory();
+            return;
+        }
+        if (FORWARD == status_)
+        {
+            std::string buf((const char *)sess_.out_read_buf, sz);
+            sess_.recv_len += buf.size();
+            in_async_write(buf);
+        }
+    });
 }
 
 void server_session_t::out_async_write(const std::string& buf)
@@ -187,6 +233,24 @@ void server_session_t::out_async_write(const std::string& buf)
         {
             // continue FORWARD
             in_async_read();
+        }
+    });
+}
+
+void server_session_t::in_async_write(const std::string& buf)
+{
+    auto self = shared_from_this();
+    auto data = std::make_shared<std::string>(buf);
+    boost::asio::async_write(in_socket_, boost::asio::buffer(*data), [this, self, data](const boost::system::error_code err, size_t sz){
+        if (err)
+        {
+            destory();
+            return;
+        }
+        if (FORWARD == status_)
+        {
+            // continue FORWARD
+            out_async_read();
         }
     });
 }
