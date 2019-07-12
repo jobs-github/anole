@@ -17,9 +17,9 @@ public:
 private:
     void destory();
     void in_async_read();
-    void in_recv(const std::string& buf);
-    void in_recv_at_handshake(const std::string& buf);
-    void post_resolve_remote(const std::string& query_addr, const std::string& query_port, const boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type rc);
+    void on_handshake(const std::string& buf);
+    void on_resolve(const std::string& query_addr, const std::string& query_port, const boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type rc);
+    void on_connect(const std::string& query_addr, const std::string& query_port, boost::system::error_code err);
     void out_async_read();
     void out_async_write(const std::string& buf);
 private:
