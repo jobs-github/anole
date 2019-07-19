@@ -3,13 +3,31 @@
 
 #include <string>
 
+// +----+-----+-------+------+----------+----------+
+// |VER | CMD |  RSV  | ATYP | DST.ADDR | DST.PORT |
+// +----+-----+-------+------+----------+----------+
+// | 1  |  1  | X'00' |  1   | Variable |    2     |
+// +----+-----+-------+------+----------+----------+
+// * VER protocol version: X'05'
+// * CMD
+//     * CONNECT X'01'
+//     * BIND X'02'
+//     * UDP ASSOCIATE X'03'
+// * RSV RESERVED
+// * ATYP address type of following address
+//     * IP V4 address: X'01'
+//     * DOMAINNAME: X'03'
+//     * IP V6 address: X'04'
+// * DST.ADDR desired destination address
+// * DST.PORT desired destination port in network octet
+
 namespace anole {\
 
-static const uint8_t CMD_CONNECT       = 0xef;
+static const uint8_t CMD_CONNECT       = 0x01;
 
-static const uint8_t SOCK5_ADDR_IPV4   = 0xfd;
-static const uint8_t SOCK5_ADDR_DOMAIN = 0xfe;
-static const uint8_t SOCK5_ADDR_IPV6   = 0xff;
+static const uint8_t SOCK5_ADDR_IPV4   = 0x01;
+static const uint8_t SOCK5_ADDR_DOMAIN = 0x03;
+static const uint8_t SOCK5_ADDR_IPV6   = 0x04;
 
 struct sock5_address_t
 {
