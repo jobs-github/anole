@@ -15,8 +15,12 @@ public:
     void start();
     boost::asio::ip::tcp::socket& accept_socket();
 private:
+    void in_async_read();
+    void destory();
+private:
     session_data_t sess_;
     boost::asio::ip::tcp::socket in_socket_;
+    boost::asio::ssl::stream<boost::asio::ip::tcp::socket> out_socket_;
 };
 
 } // anole
