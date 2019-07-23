@@ -1,5 +1,6 @@
 #include "client_session.h"
 #include "utils.h"
+#include "anole_proto.h"
 
 namespace anole {\
 
@@ -76,13 +77,55 @@ void client_session_t::in_async_read()
     });
 }
 
+//+----+----------+----------+
+//|VER | NMETHODS | METHODS  |
+//+----+----------+----------+
+//| 1  |    1     | 1 to 255 |
+//+----+----------+----------+
+
+// X'00' NO AUTHENTICATION REQUIRED
+// X'01' GSSAPI
+// X'02' USERNAME/PASSWORD
+// X'03' to X'7F' IANA ASSIGNED
+// X'80' to X'FE' RESERVED FOR PRIVATE METHODS
+// X'FF' NO ACCEPTABLE METHODS
 void client_session_t::on_handshake(const std::string& buf)
 {
+    if (buf.size() < 2 || buf[0] != PROTO_VER || buf.size() != (size_t)(buf[1] + 2))
+    {
+        zlog_error(anole::cat(), "%s:%s unknown protocol", SESS_ADDR, SESS_PORT);
+        destory();
+        return;
+    }
+    bool acceptable = false;
+    for (int i = 2; i < buf[1] + 2; i++)
+    {
+        if (METHOD_NO_AUTH == buf[i])
+        {
+            acceptable = true;
+            break;
+        }
+    }
+    if (!acceptable)
+    {
+        zlog_error(anole::cat(), "%s:%s method not support", SESS_ADDR, SESS_PORT);
+        auto resp = anole::no_acceptable_methods();
+        in_async_write(std::string(resp.data, resp.len));
+        status_ = INVALID;
+        return;
+    }
 
+    auto resp = anole::no_authentication_required();
+    in_async_write(std::string(resp.data, resp.len));
 }
 
 void client_session_t::on_request(const std::string& buf)
 {
+}
+
+void client_session_t::in_async_write(const std::string& buf)
+{
+
 }
 
 void client_session_t::destory()

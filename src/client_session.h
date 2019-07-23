@@ -18,6 +18,7 @@ private:
     void in_async_read();
     void on_handshake(const std::string& buf);
     void on_request(const std::string& buf);
+    void in_async_write(const std::string& buf);
     void destory();
 private:
     enum status_e

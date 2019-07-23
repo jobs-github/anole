@@ -27,7 +27,7 @@ void server_session_t::start()
     in_socket_.async_handshake(boost::asio::ssl::stream_base::server, [this, self](const boost::system::error_code err){
         if (err)
         {
-            zlog_error(anole::cat(), "%s:%s SSL handshake failed: %s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), err.message().c_str());
+            zlog_error(anole::cat(), "%s:%s SSL handshake failed: %s", SESS_ADDR, SESS_PORT, err.message().c_str());
             destory();
             return;
         }
@@ -47,7 +47,7 @@ void server_session_t::destory()
         return;
     }
     status_ = DESTORY;
-    zlog_debug(anole::cat(), "%s:%s disconnected, %d bytes received, %d bytes sent, lasted for %s sec", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), sess_.recv_len, sess_.sent_len, time(NULL) - sess_.start_time);
+    zlog_debug(anole::cat(), "%s:%s disconnected, %d bytes received, %d bytes sent, lasted for %s sec", SESS_ADDR, SESS_PORT, sess_.recv_len, sess_.sent_len, time(NULL) - sess_.start_time);
     boost::system::error_code err;
     sess_.resolver.cancel();
     if (out_socket_.is_open())
@@ -109,11 +109,11 @@ void server_session_t::on_handshake(const std::string& buf)
         if (sess_.config.pwd.end() == it)
         {
             ok = false;
-            zlog_warn(anole::cat(), "%s:%s valid anole request but incorrect password %s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), req.password.c_str());
+            zlog_warn(anole::cat(), "%s:%s valid anole request but incorrect password %s", SESS_ADDR, SESS_PORT, req.password.c_str());
         }
         else
         {
-            zlog_error(anole::cat(), "%s:%s authenticated as %s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), it->second.c_str());
+            zlog_error(anole::cat(), "%s:%s authenticated as %s", SESS_ADDR, SESS_PORT, it->second.c_str());
         }
     }
     // set query args
@@ -122,12 +122,12 @@ void server_session_t::on_handshake(const std::string& buf)
     if (ok)
     {
         sess_.out_write_buf = req.payload;
-        zlog_debug(anole::cat(), "%s:%s requested connection to %s:%s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), query_addr.c_str(), query_port.c_str());
+        zlog_debug(anole::cat(), "%s:%s requested connection to %s:%s", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port.c_str());
     }
     else
     {
         sess_.out_write_buf = buf;
-        zlog_warn(anole::cat(), "%s:%s not anole request, connecting to  %s:%s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), query_addr.c_str(), query_port.c_str());
+        zlog_warn(anole::cat(), "%s:%s not anole request, connecting to  %s:%s", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port.c_str());
     }
     sess_.sent_len = sess_.out_write_buf.size();
 
@@ -142,7 +142,7 @@ void server_session_t::on_resolve(const std::string& query_addr, const std::stri
 {
     if (err || rc.size() < 1)
     {
-        zlog_error(anole::cat(), "%s:%s cannot resolve remote server hostname  %s:%s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), query_addr.c_str(), query_port.c_str());
+        zlog_error(anole::cat(), "%s:%s cannot resolve remote server hostname  %s:%s", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port.c_str());
         destory();
         return;
     }
@@ -182,11 +182,11 @@ void server_session_t::on_connect(const std::string& query_addr, const std::stri
 {
     if (err)
     {
-        zlog_error(anole::cat(), "%s:%s cannot establish connection to remote server %s:%s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), query_addr.c_str(), query_port.c_str());
+        zlog_error(anole::cat(), "%s:%s cannot establish connection to remote server %s:%s", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port.c_str());
         destory();
         return;
     }
-    zlog_error(anole::cat(), "%s:%s tunnel established %s:%s", sess_.in_endpoint.address().to_string().c_str(), anole::to_string(sess_.in_endpoint.port()).c_str(), query_addr.c_str(), query_port.c_str());
+    zlog_error(anole::cat(), "%s:%s tunnel established %s:%s", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port.c_str());
     status_ = FORWARD;
     // case out
     out_async_read();

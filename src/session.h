@@ -10,6 +10,9 @@
 
 namespace anole { \
 
+#define SESS_ADDR sess_.in_endpoint.address().to_string().c_str()
+#define SESS_PORT anole::to_string(sess_.in_endpoint.port()).c_str()
+
 enum
 {
     BUF_SIZE = 8192,

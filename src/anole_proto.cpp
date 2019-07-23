@@ -1,9 +1,24 @@
 #include "anole_proto.h"
-#include "utils.h"
 
 namespace anole {\
 
 static c_str_t CRLF = make_str("\r\n");
+
+c_str_t no_acceptable_methods()
+{
+    static const uint8_t buf[] = { PROTO_VER, NO_ACCEPTABLE_METHODS };
+    static const size_t len = sizeof(buf) / sizeof(uint8_t);
+    static c_str_t resp = { (char *)buf, len };
+    return resp;
+}
+
+c_str_t no_authentication_required()
+{
+    static const uint8_t buf[] = { PROTO_VER, METHOD_NO_AUTH };
+    static const size_t len = sizeof(buf) / sizeof(uint8_t);
+    static c_str_t resp = { (char *)buf, len };
+    return resp;
+}
 
 int sock5_address_t::decode(const std::string& data)
 {
