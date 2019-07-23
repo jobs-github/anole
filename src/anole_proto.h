@@ -23,9 +23,10 @@ static const uint8_t ATYP_IPV6             = 0x04;
 static const uint8_t REP_SUCCEEDED         = 0x00;
 static const uint8_t REP_CMD_NOT_SUPPORTED = 0x07;
 
-c_str_t no_acceptable_methods();
-c_str_t no_authentication_required();
-c_str_t command_not_supported();
+c_str_t& no_acceptable_methods();
+c_str_t& no_authentication_required();
+c_str_t& command_not_supported();
+c_str_t& succeeded();
 
 struct sock5_address_t
 {

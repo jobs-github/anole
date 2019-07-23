@@ -1,5 +1,4 @@
 #include "client_session.h"
-#include "utils.h"
 #include "anole_proto.h"
 
 // +----+----------+----------+
@@ -48,6 +47,8 @@ namespace anole {\
 client_session_t::client_session_t(const slothjson::config_t& config,
     boost::asio::io_context& io_context, boost::asio::ssl::context& ssl_context):
 status_(HANDSHAKE),
+is_udp_(false),
+first_packet_recv_(false),
 sess_(config, io_context),
 in_socket_(io_context),
 out_socket_(io_context, ssl_context)
@@ -85,6 +86,7 @@ boost::asio::ip::tcp::socket& client_session_t::accept_socket()
     return in_socket_;
 }
 
+// in_async_read <-> in_async_write
 void client_session_t::in_async_read()
 {
     auto self = shared_from_this();
@@ -138,14 +140,12 @@ void client_session_t::on_handshake(const std::string& buf)
     if (!acceptable)
     {
         zlog_error(anole::cat(), "%s:%s method not support", SESS_ADDR, SESS_PORT);
-        auto resp = anole::no_acceptable_methods();
-        in_async_write(std::string(resp.data, resp.len));
+        in_async_write(anole::no_acceptable_methods());
         status_ = INVALID;
         return;
     }
 
-    auto resp = anole::no_authentication_required();
-    in_async_write(std::string(resp.data, resp.len));
+    in_async_write(anole::no_authentication_required());
 }
 
 
@@ -163,12 +163,25 @@ void client_session_t::on_request(const std::string& buf)
     if (!req.decode(sess_.out_write_buf))
     {
         zlog_error(anole::cat(), "%s:%s command not supported", SESS_ADDR, SESS_PORT);
-        auto rep = anole::command_not_supported();
-        in_async_write(std::string(rep.data, rep.len));
+        in_async_write(anole::command_not_supported());
         status_ = INVALID;
         return;
     }
-    // TODO
+    is_udp_ = (req.command == request_t::UDP_ASSOCIATE);
+    if (is_udp_)
+    {
+        // TODO
+    }
+    else
+    {
+        zlog_debug(anole::cat(), "%s:%s requested connection to: %s:%s", SESS_ADDR, SESS_PORT, req.address.address.c_str(), anole::to_string(req.address.port).c_str());
+        in_async_write(anole::succeeded());
+    }
+}
+
+void client_session_t::in_async_write(c_str_t& buf)
+{
+    in_async_write(std::string(buf.data, buf.len));
 }
 
 void client_session_t::in_async_write(const std::string& buf)
@@ -188,7 +201,8 @@ void client_session_t::in_async_write(const std::string& buf)
         }
         else if (REQUEST == status_)
         {
-
+            status_ = CONNECT;
+            establish_tunnel();
         }
         else if (CONNECT == status_)
         {
@@ -199,6 +213,106 @@ void client_session_t::in_async_write(const std::string& buf)
 
         }
     });
+}
+
+void client_session_t::establish_tunnel()
+{
+    in_async_read();
+    if (is_udp_)
+    {
+        // TODO
+    }
+    auto self = shared_from_this();
+    sess_.resolver.async_resolve(sess_.config.remote_addr, anole::to_string(sess_.config.remote_port), [this, self](const boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type rc){
+        on_resolve(err, rc);
+    });
+}
+
+void client_session_t::on_resolve(const boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type rc)
+{
+    if (err)
+    {
+        zlog_error(anole::cat(), "%s:%s could not resolve remote server %s, %s", SESS_ADDR, SESS_PORT, sess_.config.remote_addr.c_str(), err.message().c_str());
+        destory();
+        return;
+    }
+    auto it = rc.begin();
+    boost::system::error_code code;
+    out_socket_.next_layer().open(it->endpoint().protocol(), code);
+    if (code)
+    {
+        destory();
+        return;
+    }
+    if (sess_.config.tcp.no_delay)
+    {
+        out_socket_.next_layer().set_option(boost::asio::ip::tcp::no_delay(true));
+    }
+    if (sess_.config.tcp.keep_alive)
+    {
+        out_socket_.next_layer().set_option(boost::asio::socket_base::keep_alive(true));
+    }
+    auto self = shared_from_this();
+    out_socket_.next_layer().async_connect(*it, [this, self](const boost::system::error_code err){
+        on_connect(err);
+    });
+}
+
+void client_session_t::on_connect(const boost::system::error_code err)
+{
+    if (err)
+    {
+        zlog_error(anole::cat(), "%s:%s could not connect to remote server %s:%s, %s", SESS_ADDR, SESS_PORT, sess_.config.remote_addr.c_str(), anole::to_string(sess_.config.remote_port).c_str(), err.message().c_str());
+        destory();
+        return;
+    }
+    auto self = shared_from_this();
+    out_socket_.async_handshake(boost::asio::ssl::stream_base::client, [this, self](const boost::system::error_code err){
+        if (err)
+        {
+            zlog_error(anole::cat(), "%s:%s ssl handshake fail %s:%s, %s", SESS_ADDR, SESS_PORT, sess_.config.remote_addr.c_str(), anole::to_string(sess_.config.remote_port).c_str(), err.message().c_str());
+            destory();
+            return;
+        }
+        zlog_debug(anole::cat(), "%s:%s tunnel established", SESS_ADDR, SESS_PORT);
+        if (sess_.config.ssl.reuse_session)
+        {
+            auto ssl = out_socket_.native_handle();
+            if (!SSL_session_reused(ssl))
+            {
+                zlog_debug(anole::cat(), "%s:%s ssl session not reused", SESS_ADDR, SESS_PORT);
+            }
+            else
+            {
+                zlog_debug(anole::cat(), "%s:%s ssl session reused", SESS_ADDR, SESS_PORT);
+            }
+        }
+        boost::system::error_code code;
+        if (is_udp_)
+        {
+            // TODO
+        }
+        else
+        {
+            if (!first_packet_recv_)
+            {
+                in_socket_.cancel(code);
+            }
+            status_ = FORWARD;
+        }
+        out_async_read();
+        out_async_write(sess_.out_write_buf);
+    });
+}
+
+void client_session_t::out_async_read()
+{
+
+}
+
+void client_session_t::out_async_write(const std::string& buf)
+{
+
 }
 
 void client_session_t::destory()
