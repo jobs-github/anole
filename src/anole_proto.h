@@ -11,25 +11,29 @@ namespace anole {\
 static const uint8_t PROTO_VER             = 0x05;
 
 static const uint8_t METHOD_NO_AUTH        = 0x00;
-static const uint8_t NO_ACCEPTABLE_METHODS = 0xff;
+static const uint8_t METHOD_NO_ACCEPTABLE  = 0xff;
 
 static const uint8_t CMD_CONNECT           = 0x01;
 static const uint8_t CMD_UDP_ASSOCIATE     = 0x03;
 
-static const uint8_t SOCK5_ADDR_IPV4       = 0x01;
-static const uint8_t SOCK5_ADDR_DOMAIN     = 0x03;
-static const uint8_t SOCK5_ADDR_IPV6       = 0x04;
+static const uint8_t ATYP_IPV4             = 0x01;
+static const uint8_t ATYP_DOMAIN           = 0x03;
+static const uint8_t ATYP_IPV6             = 0x04;
+
+static const uint8_t REP_SUCCEEDED         = 0x00;
+static const uint8_t REP_CMD_NOT_SUPPORTED = 0x07;
 
 c_str_t no_acceptable_methods();
 c_str_t no_authentication_required();
+c_str_t command_not_supported();
 
 struct sock5_address_t
 {
     enum address_type_e
     {
-        IPv4 = SOCK5_ADDR_IPV4,
-        DOMAIN_NAME = SOCK5_ADDR_DOMAIN,
-        IPv6 = SOCK5_ADDR_IPV6,
+        IPv4 = ATYP_IPV4,
+        DOMAIN_NAME = ATYP_DOMAIN,
+        IPv6 = ATYP_IPV6,
     } address_type;
     std::string address;
     uint16_t port;
@@ -47,7 +51,8 @@ struct request_t
     std::string password;
     enum command_e
     {
-        CONNECT = CMD_CONNECT
+        CONNECT = CMD_CONNECT,
+        UDP_ASSOCIATE = CMD_UDP_ASSOCIATE
     } command;
     sock5_address_t address;
     std::string payload;

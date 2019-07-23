@@ -6,7 +6,7 @@ static c_str_t CRLF = make_str("\r\n");
 
 c_str_t no_acceptable_methods()
 {
-    static const uint8_t buf[] = { PROTO_VER, NO_ACCEPTABLE_METHODS };
+    static const uint8_t buf[] = { PROTO_VER, METHOD_NO_ACCEPTABLE };
     static const size_t len = sizeof(buf) / sizeof(uint8_t);
     static c_str_t resp = { (char *)buf, len };
     return resp;
@@ -15,6 +15,14 @@ c_str_t no_acceptable_methods()
 c_str_t no_authentication_required()
 {
     static const uint8_t buf[] = { PROTO_VER, METHOD_NO_AUTH };
+    static const size_t len = sizeof(buf) / sizeof(uint8_t);
+    static c_str_t resp = { (char *)buf, len };
+    return resp;
+}
+
+c_str_t command_not_supported()
+{
+    static const uint8_t buf[] = { PROTO_VER, REP_CMD_NOT_SUPPORTED, 0, ATYP_IPV4, 0, 0, 0, 0, 0, 0 };
     static const size_t len = sizeof(buf) / sizeof(uint8_t);
     static c_str_t resp = { (char *)buf, len };
     return resp;
