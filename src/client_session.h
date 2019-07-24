@@ -34,6 +34,7 @@ private:
         REQUEST,
         CONNECT,
         FORWARD,
+        UDP_FORWARD,
         INVALID,
         DESTORY
     } status_;

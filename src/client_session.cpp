@@ -111,11 +111,18 @@ void client_session_t::in_async_read()
         }
         else if (CONNECT == status_)
         {
-
+            sess_.sent_len += buf.size();
+            first_packet_recv_ = true;
+            sess_.out_write_buf.append(buf);
         }
         else if (FORWARD == status_)
         {
-
+            sess_.sent_len += buf.size();
+            out_async_write(buf);
+        }
+        else if (UDP_FORWARD == status_)
+        {
+            // TODO
         }
     });
 }
@@ -204,13 +211,14 @@ void client_session_t::in_async_write(const std::string& buf)
             status_ = CONNECT;
             establish_tunnel();
         }
-        else if (CONNECT == status_)
-        {
-
-        }
         else if (FORWARD == status_)
         {
-
+            // continue forward
+            out_async_read();
+        }
+        else if (INVALID == status_)
+        {
+            destory();
         }
     });
 }
@@ -307,17 +315,83 @@ void client_session_t::on_connect(const boost::system::error_code err)
 
 void client_session_t::out_async_read()
 {
-
+    auto self = shared_from_this();
+    out_socket_.async_read_some(boost::asio::buffer(sess_.out_read_buf, BUF_SIZE), [this, self](const boost::system::error_code err, size_t sz){
+        if (err)
+        {
+            destory();
+            return;
+        }
+        std::string buf((const char *)sess_.out_read_buf, sz);
+        if (FORWARD == status_)
+        {
+            sess_.recv_len += buf.size();
+            in_async_write(buf);
+        }
+        else if (UDP_FORWARD == status_)
+        {
+            // TODO
+        }
+    });
 }
 
 void client_session_t::out_async_write(const std::string& buf)
 {
-
+    auto self = shared_from_this();
+    auto data = std::make_shared<std::string>(buf);
+    boost::asio::async_write(out_socket_, boost::asio::buffer(*data), [this, self, data](const boost::system::error_code err, size_t sz){
+        if (err)
+        {
+            destory();
+            return;
+        }
+        if (FORWARD == status_)
+        {
+            in_async_read();
+        }
+        else if (UDP_FORWARD == status_)
+        {
+            // TODO
+        }
+    });
 }
 
 void client_session_t::destory()
 {
-
+    if (DESTORY == status_)
+    {
+        return;
+    }
+    status_ = DESTORY;
+    zlog_debug(anole::cat(), "%s:%s disconnected, %d bytes received, %d bytes sent, lasted for %s sec", SESS_ADDR, SESS_PORT, sess_.recv_len, sess_.sent_len, time(NULL) - sess_.start_time);
+    boost::system::error_code err;
+    sess_.resolver.cancel();
+    if (in_socket_.is_open())
+    {
+        in_socket_.cancel(err);
+        in_socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, err);
+        in_socket_.close();
+    }
+    // TODO udp
+    if (out_socket_.next_layer().is_open())
+    {
+        auto self = shared_from_this();
+        auto ssl_shutdown_cb = [this, self](const boost::system::error_code err){
+            if (boost::asio::error::operation_aborted == err)
+            {
+                return;
+            }
+            boost::system::error_code code;
+            sess_.ssl_shutdown_timer.cancel(code);
+            out_socket_.next_layer().cancel(code);
+            out_socket_.next_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, code);
+            out_socket_.next_layer().close();
+        };
+        out_socket_.next_layer().cancel(err);
+        out_socket_.async_shutdown(ssl_shutdown_cb);
+        sess_.ssl_shutdown_timer.expires_after(std::chrono::seconds(SSL_SHUTDOWN_TIMEOUT));
+        sess_.ssl_shutdown_timer.async_wait(ssl_shutdown_cb);
+    }
 }
 
 } // anole
