@@ -139,7 +139,9 @@ void client_session_t::in_async_read()
         }
         else if (UDP_FORWARD == status_)
         {
-            // TODO
+            // udp_async_read
+            zlog_error(anole::cat(), "%s:%d unexpected data from tcp port, it should in udp_async_read", SESS_ADDR, SESS_PORT);
+            destory();
         }
     });
 }
@@ -329,7 +331,11 @@ void client_session_t::on_connect(const boost::system::error_code err)
         boost::system::error_code code;
         if (is_udp_)
         {
-            // TODO
+            if (!first_packet_recv_)
+            {
+                sess_.udp_socket.cancel();
+            }
+            status_ = UDP_FORWARD;
         }
         else
         {
@@ -361,6 +367,7 @@ void client_session_t::out_async_read()
         }
         else if (UDP_FORWARD == status_)
         {
+            sess_.udp_data_buf += buf;
             // TODO
         }
     });
@@ -382,7 +389,7 @@ void client_session_t::out_async_write(const std::string& buf)
         }
         else if (UDP_FORWARD == status_)
         {
-            // TODO
+            udp_async_read();
         }
     });
 }
@@ -421,6 +428,18 @@ void client_session_t::udp_async_read()
         }
         size_t data_len = buf.size() - 3 - addr_len;
         zlog_debug(anole::cat(), "%s:%d sent udp packet (%d bytes) to %s:%d", SESS_ADDR, SESS_PORT, data_len, addr.address.c_str(), addr.port);
+
+        std::string packet = buf.substr(3, addr_len) + char(uint8_t(data_len >> 8)) + char(uint8_t(data_len & 0xFF)) + "\r\n" + buf.substr(addr_len + 3);
+        sess_.sent_len += data_len;
+        if (CONNECT == status_)
+        {
+            first_packet_recv_ = true;
+            sess_.out_write_buf += packet;
+        }
+        else if (UDP_FORWARD == status_)
+        {
+            out_async_write(packet);
+        }
     });
 }
 
@@ -440,7 +459,11 @@ void client_session_t::destory()
         in_socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, err);
         in_socket_.close();
     }
-    // TODO udp
+    if (sess_.udp_socket.is_open())
+    {
+        sess_.udp_socket.cancel(err);
+        sess_.udp_socket.close(err);
+    }
     if (out_socket_.next_layer().is_open())
     {
         auto self = shared_from_this();

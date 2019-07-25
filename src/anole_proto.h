@@ -64,6 +64,13 @@ struct request_t
 
 };
 
+struct udp_packet_t
+{
+    sock5_address_t address;
+    uint16_t length;
+    std::string payload;
+};
+
 } // anole
 
 #endif // __anole_proto_20190708192825_h__
