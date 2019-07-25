@@ -2,6 +2,7 @@
 #define __anole_proto_20190708192825_h__
 
 #include <string>
+#include <boost/asio/ip/udp.hpp>
 #include "utils.h"
 
 // https://www.ietf.org/rfc/rfc1928.txt
@@ -27,6 +28,7 @@ c_str_t& no_acceptable_methods();
 c_str_t& no_authentication_required();
 c_str_t& command_not_supported();
 c_str_t& succeeded();
+c_str_t& make_succeeded();
 
 struct sock5_address_t
 {
@@ -38,6 +40,7 @@ struct sock5_address_t
     } address_type;
     std::string address;
     uint16_t port;
+    static std::string encode(const boost::asio::ip::udp::endpoint& endpoint);
     int decode(const std::string& data);
 private:
     bool is_valid(char address_type);

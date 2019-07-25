@@ -27,7 +27,7 @@ void server_session_t::start()
     in_socket_.async_handshake(boost::asio::ssl::stream_base::server, [this, self](const boost::system::error_code err){
         if (err)
         {
-            zlog_error(anole::cat(), "%s:%s SSL handshake failed: %s", SESS_ADDR, SESS_PORT, err.message().c_str());
+            zlog_error(anole::cat(), "%s:%d SSL handshake failed: %s", SESS_ADDR, SESS_PORT, err.message().c_str());
             destory();
             return;
         }
@@ -47,7 +47,7 @@ void server_session_t::destory()
         return;
     }
     status_ = DESTORY;
-    zlog_debug(anole::cat(), "%s:%s disconnected, %d bytes received, %d bytes sent, lasted for %s sec", SESS_ADDR, SESS_PORT, sess_.recv_len, sess_.sent_len, time(NULL) - sess_.start_time);
+    zlog_debug(anole::cat(), "%s:%d disconnected, %d bytes received, %d bytes sent, lasted for %s sec", SESS_ADDR, SESS_PORT, sess_.recv_len, sess_.sent_len, time(NULL) - sess_.start_time);
     boost::system::error_code err;
     sess_.resolver.cancel();
     if (out_socket_.is_open())
@@ -109,40 +109,40 @@ void server_session_t::on_handshake(const std::string& buf)
         if (sess_.config.pwd.end() == it)
         {
             ok = false;
-            zlog_warn(anole::cat(), "%s:%s valid anole request but incorrect password %s", SESS_ADDR, SESS_PORT, req.password.c_str());
+            zlog_warn(anole::cat(), "%s:%d valid anole request but incorrect password %s", SESS_ADDR, SESS_PORT, req.password.c_str());
         }
         else
         {
-            zlog_error(anole::cat(), "%s:%s authenticated as %s", SESS_ADDR, SESS_PORT, it->second.c_str());
+            zlog_error(anole::cat(), "%s:%d authenticated as %s", SESS_ADDR, SESS_PORT, it->second.c_str());
         }
     }
     // set query args
     std::string query_addr = ok ? req.address.address : sess_.config.remote_addr;
-    std::string query_port = anole::to_string((ok ? req.address.port : sess_.config.remote_port));
+    uint16_t query_port = (ok ? req.address.port : sess_.config.remote_port);
     if (ok)
     {
         sess_.out_write_buf = req.payload;
-        zlog_debug(anole::cat(), "%s:%s requested connection to %s:%s", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port.c_str());
+        zlog_debug(anole::cat(), "%s:%d requested connection to %s:%d", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port);
     }
     else
     {
         sess_.out_write_buf = buf;
-        zlog_warn(anole::cat(), "%s:%s not anole request, connecting to  %s:%s", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port.c_str());
+        zlog_warn(anole::cat(), "%s:%d not anole request, connecting to  %s:%d", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port);
     }
     sess_.sent_len = sess_.out_write_buf.size();
 
     // resolve remote
     auto self = shared_from_this();
-    sess_.resolver.async_resolve(query_addr, query_port, [this, self, query_addr, query_port](const boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type rc){
+    sess_.resolver.async_resolve(query_addr, to_string(query_port), [this, self, query_addr, query_port](const boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type rc){
         on_resolve(query_addr, query_port, err, rc);
     });
 }
 
-void server_session_t::on_resolve(const std::string& query_addr, const std::string& query_port, const boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type rc)
+void server_session_t::on_resolve(const std::string& query_addr, uint16_t query_port, const boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type rc)
 {
     if (err || rc.size() < 1)
     {
-        zlog_error(anole::cat(), "%s:%s cannot resolve remote server hostname  %s:%s", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port.c_str());
+        zlog_error(anole::cat(), "%s:%d cannot resolve remote server hostname  %s:%d", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port);
         destory();
         return;
     }
@@ -178,15 +178,15 @@ void server_session_t::on_resolve(const std::string& query_addr, const std::stri
 }
 
 // out_async_read | in_async_read
-void server_session_t::on_connect(const std::string& query_addr, const std::string& query_port, boost::system::error_code err)
+void server_session_t::on_connect(const std::string& query_addr, uint16_t query_port, boost::system::error_code err)
 {
     if (err)
     {
-        zlog_error(anole::cat(), "%s:%s cannot establish connection to remote server %s:%s", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port.c_str());
+        zlog_error(anole::cat(), "%s:%d cannot establish connection to remote server %s:%d", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port);
         destory();
         return;
     }
-    zlog_error(anole::cat(), "%s:%s tunnel established %s:%s", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port.c_str());
+    zlog_error(anole::cat(), "%s:%d tunnel established %s:%d", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port);
     status_ = FORWARD;
     // case out
     out_async_read();

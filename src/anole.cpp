@@ -171,7 +171,7 @@ void anole_t::run()
 {
     async_accept();
     boost::asio::ip::tcp::endpoint local_endpoint = socket_acceptor_.local_endpoint();
-    zlog_debug(anole::cat(), "anole service (%s) started at %s:%s", config_.run_type.c_str(), local_endpoint.address().to_string().c_str(), anole::to_string(local_endpoint.port()).c_str());
+    zlog_debug(anole::cat(), "anole service (%s) started at %s:%d", config_.run_type.c_str(), local_endpoint.address().to_string().c_str(), local_endpoint.port());
     io_context_.run();
     zlog_debug(anole::cat(), "anole service (%s) stopped", config_.run_type.c_str());
 }

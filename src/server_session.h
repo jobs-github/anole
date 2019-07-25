@@ -24,8 +24,8 @@ private:
     void out_async_write(const std::string& buf);
 
     void on_handshake(const std::string& buf);
-    void on_resolve(const std::string& query_addr, const std::string& query_port, const boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type rc);
-    void on_connect(const std::string& query_addr, const std::string& query_port, boost::system::error_code err);
+    void on_resolve(const std::string& query_addr, uint16_t query_port, const boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type rc);
+    void on_connect(const std::string& query_addr, uint16_t query_port, boost::system::error_code err);
 private:
     enum status_e
     {

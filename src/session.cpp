@@ -7,7 +7,9 @@ config(_config),
 recv_len(0),
 sent_len(0),
 start_time(0),
-resolver(_io_context)
+resolver(_io_context),
+udp_socket(_io_context),
+ssl_shutdown_timer(_io_context)
 {
 }
 
