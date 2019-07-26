@@ -2,7 +2,12 @@
 
 namespace anole {\
 
-static c_str_t CRLF = make_str("\r\n");
+#define CRLF  "\r\n"
+
+uint16_t decode_uint16(const std::string& data, int offset)
+{
+    return (uint8_t(data[offset]) << 8) | uint8_t(data[offset + 1]);
+}
 
 c_str_t& no_acceptable_methods()
 {
@@ -154,7 +159,7 @@ int sock5_address_t::decode_ipv6(const std::string& data)
 
 uint16_t sock5_address_t::decode_port(const std::string& data, int offset)
 {
-    return (uint8_t(data[offset]) << 8) | uint8_t(data[offset + 1]);
+    return decode_uint16(data, offset);
 }
 
 //---------|----|-------|------------|-------|----|----|--------
@@ -164,25 +169,41 @@ uint16_t sock5_address_t::decode_port(const std::string& data, int offset)
 //---------|----|-------|------------|-------|----|----|--------
 bool request_t::decode(const std::string& data)
 {
-    size_t pos = data.find(CRLF.data);
+    size_t pos = data.find(CRLF);
     if (std::string::npos == pos)
     {
         return false;
     }
     password = data.substr(0, pos);
-    payload = data.substr(pos + CRLF.len);
+    payload = data.substr(pos + 2);
     if (payload.size() < 1 || (payload[0] != CONNECT))
     {
         return false;
     }
     command = static_cast<command_e>(payload[0]);
     int address_len = address.decode(data.substr(1));
-    if (-1 == address_len || payload.size() < size_t(address_len) + 3 || payload.substr(address_len + 1, 2) != CRLF.data)
+    if (-1 == address_len || payload.size() < size_t(address_len) + 3 || payload.substr(address_len + 1, 2) != CRLF)
     {
         return false;
     }
     payload = payload.substr(address_len + 3);
     return true;
+}
+
+int udp_packet_t::decode(const std::string& data)
+{
+    int addr_len = address.decode(data);
+    if (addr_len < 0 || data.size() < (size_t)addr_len + 2)
+    {
+        return -1;
+    }
+    length = decode_uint16(data, addr_len);
+    if (data.size() < (size_t)addr_len + 4 + length || data.substr(addr_len + 2, 2) != "\r\n")
+    {
+        return -1;
+    }
+    payload = data.substr(addr_len + 4, length);
+    return addr_len + 4 + length;
 }
 
 } // anole

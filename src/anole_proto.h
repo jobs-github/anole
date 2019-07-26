@@ -69,6 +69,7 @@ struct udp_packet_t
     sock5_address_t address;
     uint16_t length;
     std::string payload;
+    int decode(const std::string& data);
 };
 
 } // anole
