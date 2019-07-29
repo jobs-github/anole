@@ -368,8 +368,55 @@ void client_session_t::out_async_read()
         else if (UDP_FORWARD == status_)
         {
             sess_.udp_data_buf += buf;
-            // TODO
+            udp_sent();
         }
+    });
+}
+
+void client_session_t::udp_sent()
+{
+    udp_packet_t packet;
+    int packet_len = packet.decode(sess_.udp_data_buf);
+    if (packet_len < 0)
+    {
+        if (sess_.udp_data_buf.size() > BUF_SIZE)
+        {
+            zlog_error(anole::cat(), "%s:%d udp packet too long", SESS_ADDR, SESS_PORT);
+            destory();
+        }
+        else
+        {
+            out_async_read();
+        }
+        return;
+    }
+    zlog_debug(anole::cat(), "%s:%d receive udp packet from %s:%d, len: %d", SESS_ADDR, SESS_PORT, packet.address.address.c_str(), packet.address.port, packet.length);
+
+    auto head = make_udp_head();
+    std::string reply(head.data, head.len);
+    reply.append(sess_.udp_data_buf.substr(packet.addr_len));
+    reply.append(packet.payload);
+
+    // op
+    sess_.udp_data_buf = sess_.udp_data_buf.substr(packet_len);
+
+    sess_.recv_len += packet.length;
+    // forward
+    udp_async_write(reply);
+}
+
+void client_session_t::udp_async_write(const std::string& buf)
+{
+    auto self = shared_from_this();
+    auto data = std::make_shared<std::string>(buf);
+    sess_.udp_socket.async_send_to(boost::asio::buffer(*data), sess_.udp_recv_endpoint, [this, self, data](const boost::system::error_code err, size_t sz){
+        if (err)
+        {
+            destory();
+            return;
+        }
+        // continue
+        udp_sent();
     });
 }
 

@@ -30,7 +30,7 @@ struct session_data_t
     uint64_t sent_len;
     time_t start_time;
     std::string out_write_buf;
-    std::string udp_data_buf;
+    std::string udp_data_buf; // stream
     boost::asio::ip::tcp::resolver resolver;
     boost::asio::ip::tcp::endpoint in_endpoint;
     boost::asio::ip::udp::socket udp_socket;

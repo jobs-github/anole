@@ -57,6 +57,14 @@ c_str_t& zero_sock5_address()
     return resp;
 }
 
+c_str_t& make_udp_head()
+{
+    static const uint8_t buf[] = { 0, 0, 0 };
+    static const size_t len = sizeof(buf) / sizeof(uint8_t);
+    static c_str_t resp = { (char *)buf, len };
+    return resp;
+}
+
 std::string sock5_address_t::encode(const boost::asio::ip::udp::endpoint& endpoint)
 {
     if (endpoint.address().is_unspecified())
@@ -192,7 +200,7 @@ bool request_t::decode(const std::string& data)
 
 int udp_packet_t::decode(const std::string& data)
 {
-    int addr_len = address.decode(data);
+    addr_len = address.decode(data);
     if (addr_len < 0 || data.size() < (size_t)addr_len + 2)
     {
         return -1;

@@ -29,6 +29,7 @@ c_str_t& no_authentication_required();
 c_str_t& command_not_supported();
 c_str_t& succeeded();
 c_str_t& make_succeeded();
+c_str_t& make_udp_head();
 
 struct sock5_address_t
 {
@@ -69,6 +70,9 @@ struct udp_packet_t
     sock5_address_t address;
     uint16_t length;
     std::string payload;
+
+    // other
+    int addr_len;
     int decode(const std::string& data);
 };
 

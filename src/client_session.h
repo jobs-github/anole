@@ -26,7 +26,9 @@ private:
     void on_connect(const boost::system::error_code err);
     void out_async_read();
     void out_async_write(const std::string& buf);
+    void udp_sent();
     void udp_async_read();
+    void udp_async_write(const std::string& buf);
     void destory();
 private:
     enum status_e
