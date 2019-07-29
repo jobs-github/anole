@@ -26,16 +26,22 @@ private:
     void on_handshake(const std::string& buf);
     void on_resolve(const std::string& query_addr, uint16_t query_port, const boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type rc);
     void on_connect(const std::string& query_addr, uint16_t query_port, boost::system::error_code err);
+
+    void udp_sent();
+    void udp_async_read();
+    void udp_async_write(const std::string& buf, const boost::asio::ip::udp::endpoint& endpoint);
 private:
     enum status_e
     {
         HANDSHAKE,
         FORWARD,
+        UDP_FORWARD,
         DESTORY
     } status_;
     session_data_t sess_;
     boost::asio::ssl::stream<boost::asio::ip::tcp::socket> in_socket_;
     boost::asio::ip::tcp::socket out_socket_;
+    boost::asio::ip::udp::resolver udp_resolver_;
 };
 
 } // anole

@@ -9,7 +9,8 @@ server_session_t::server_session_t(const slothjson::config_t& config, boost::asi
 status_(HANDSHAKE),
 sess_(config, io_context),
 in_socket_(io_context, ssl_context),
-out_socket_(io_context)
+out_socket_(io_context),
+udp_resolver_(io_context)
 {
 }
 
@@ -50,11 +51,17 @@ void server_session_t::destory()
     zlog_debug(anole::cat(), "%s:%d disconnected, %d bytes received, %d bytes sent, lasted for %s sec", SESS_ADDR, SESS_PORT, sess_.recv_len, sess_.sent_len, time(NULL) - sess_.start_time);
     boost::system::error_code err;
     sess_.resolver.cancel();
+    udp_resolver_.cancel();
     if (out_socket_.is_open())
     {
         out_socket_.cancel(err);
         out_socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, err);
         out_socket_.close(err);
+    }
+    if (sess_.udp_socket.is_open())
+    {
+        sess_.udp_socket.cancel(err);
+        sess_.udp_socket.close(err);
     }
     if (in_socket_.next_layer().is_open())
     {
@@ -95,6 +102,11 @@ void server_session_t::in_async_read()
             sess_.sent_len += buf.size();
             out_async_write(buf);
         }
+        else if (UDP_FORWARD == status_)
+        {
+            sess_.udp_data_buf += buf;
+            udp_sent();
+        }
     });
 }
 
@@ -122,7 +134,18 @@ void server_session_t::on_handshake(const std::string& buf)
     if (ok)
     {
         sess_.out_write_buf = req.payload;
-        zlog_debug(anole::cat(), "%s:%d requested connection to %s:%d", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port);
+        if (request_t::UDP_ASSOCIATE == req.command)
+        {
+            zlog_debug(anole::cat(), "%s:%d requested udp associate to %s:%d", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port);
+            status_ = UDP_FORWARD;
+            sess_.udp_data_buf = sess_.out_write_buf;
+            udp_sent();
+            return;
+        }
+        else
+        {
+            zlog_debug(anole::cat(), "%s:%d requested connection to %s:%d", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port);
+        }
     }
     else
     {
@@ -252,7 +275,80 @@ void server_session_t::in_async_write(const std::string& buf)
             // continue FORWARD
             out_async_read();
         }
+        else if (UDP_FORWARD == status_)
+        {
+            udp_async_read();
+        }
     });
+}
+
+void server_session_t::udp_sent()
+{
+    // from client to remote
+    udp_packet_t packet;
+    int packet_len = packet.decode(sess_.udp_data_buf);
+    if (packet_len < 0)
+    {
+        if (sess_.udp_data_buf.size() > BUF_SIZE)
+        {
+            zlog_error(anole::cat(), "%s:%d udp packet too long", SESS_ADDR, SESS_PORT);
+            destory();
+        }
+        else
+        {
+            in_async_read();
+        }
+        return;
+    }
+    zlog_debug(anole::cat(), "%s:%d receive udp packet from %s:%d, len: %d", SESS_ADDR, SESS_PORT, packet.address.address.c_str(), packet.address.port, packet.length);
+    sess_.udp_data_buf = sess_.udp_data_buf.substr(packet_len);
+
+    std::string query_addr = packet.address.address;
+    std::string query_port = to_string(packet.address.port);
+    auto self = shared_from_this();
+    udp_resolver_.async_resolve(query_addr, query_port, [this, self, packet, query_addr](const boost::system::error_code err, boost::asio::ip::udp::resolver::results_type rc){
+        if (err)
+        {
+            zlog_error(anole::cat(), "%s:%d can not resolve remote server: %s, err: %s", SESS_ADDR, SESS_PORT, query_addr.c_str(), err.message().c_str());
+            destory();
+            return;
+        }
+        auto iter = rc.begin();
+        for (auto it = rc.begin(); it != rc.end(); ++it)
+        {
+            if (it->endpoint().address().is_v4())
+            {
+                iter = it;
+                break;
+            }
+        }
+        if (!sess_.udp_socket.is_open())
+        {
+            auto protocol = iter->endpoint().protocol();
+            boost::system::error_code err;
+            sess_.udp_socket.open(protocol, err);
+            if (err)
+            {
+                destory();
+                return;
+            }
+            sess_.udp_socket.bind(boost::asio::ip::udp::endpoint(protocol, 0));
+            udp_async_read();
+        }
+        sess_.sent_len += packet.length;
+        udp_async_write(packet.payload, *iter);
+    });
+}
+
+void server_session_t::udp_async_read()
+{
+    // TODO
+
+}
+
+void server_session_t::udp_async_write(const std::string& buf, const boost::asio::ip::udp::endpoint& endpoint)
+{
+    // TODO
 }
 
 } // anole
