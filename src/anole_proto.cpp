@@ -198,6 +198,16 @@ bool request_t::decode(const std::string& data)
     return true;
 }
 
+std::string udp_packet_t::encode(const boost::asio::ip::udp::endpoint& endpoint, const std::string& payload)
+{
+    std::string buf = sock5_address_t::encode(endpoint);
+    size_t sz = payload.size();
+    buf += (char)((uint8_t)(sz >> 8));
+    buf += (char)((uint8_t)(sz & 0xFF));
+    buf += payload;
+    return buf;
+}
+
 int udp_packet_t::decode(const std::string& data)
 {
     addr_len = address.decode(data);

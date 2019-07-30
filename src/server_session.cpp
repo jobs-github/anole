@@ -342,8 +342,21 @@ void server_session_t::udp_sent()
 
 void server_session_t::udp_async_read()
 {
-    // TODO
-
+    auto self = shared_from_this();
+    sess_.udp_socket.async_receive_from(boost::asio::buffer(sess_.udp_read_buf, BUF_SIZE), sess_.udp_recv_endpoint, [this, self](const boost::system::error_code err, size_t sz){
+        if (err)
+        {
+            destory();
+            return;
+        }
+        std::string buf((const char *)sess_.udp_read_buf, sz);
+        if (UDP_FORWARD == status_)
+        {
+            zlog_debug(anole::cat(), "%s:%d receive udp packet from %s:%d, len: %d", SESS_ADDR, SESS_PORT, sess_.udp_recv_endpoint.address().to_string().c_str(), sess_.udp_recv_endpoint.port(), sz);
+            sess_.recv_len += sz;
+            in_async_write(udp_packet_t::encode(sess_.udp_recv_endpoint, buf));
+        }
+    });
 }
 
 void server_session_t::udp_async_write(const std::string& buf, const boost::asio::ip::udp::endpoint& endpoint)

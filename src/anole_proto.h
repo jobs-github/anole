@@ -73,6 +73,7 @@ struct udp_packet_t
 
     // other
     int addr_len;
+    static std::string encode(const boost::asio::ip::udp::endpoint& endpoint, const std::string& payload);
     int decode(const std::string& data);
 };
 
