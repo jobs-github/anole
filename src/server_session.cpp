@@ -361,7 +361,16 @@ void server_session_t::udp_async_read()
 
 void server_session_t::udp_async_write(const std::string& buf, const boost::asio::ip::udp::endpoint& endpoint)
 {
-    // TODO
+    auto self = shared_from_this();
+    auto data = std::make_shared<std::string>(buf);
+    sess_.udp_socket.async_send_to(boost::asio::buffer(*data), endpoint, [this, self, data](const boost::system::error_code err, size_t sz){
+        if (err)
+        {
+            destory();
+            return;
+        }
+        udp_sent();
+    });
 }
 
 } // anole
