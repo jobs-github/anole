@@ -6,7 +6,7 @@
 # LIBS			= $(LIB) -ldl -lidn
 CC = gcc -std=gnu99
 CXX = g++
-BIN = ./
+BIN = ./build/
 INCLUDE = -I /usr/local/include \
 	-I /usr/local/boost1.66/include \
 	-I slothjson \
