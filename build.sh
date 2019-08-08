@@ -20,6 +20,7 @@ function main()
     cd src
     test -d build || (mkdir -p build)
 
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib:/usr/local/boost1.66/lib"
     # make    
     make
 }
