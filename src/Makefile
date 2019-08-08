@@ -19,7 +19,8 @@ LIB = -lboost_system \
 	-lzlog
 
 FLAGS = -std=c++11 -fPIC -O0 -g3 -Wall -fmessage-length=0 -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE
-LIB_3RD = -L /usr/local/lib
+LIB_3RD = -L /usr/local/lib \
+	-L /usr/local/boost1.66/lib
 
 OBJECTS		= $(BIN)main.o \
 	$(BIN)anole.o \
