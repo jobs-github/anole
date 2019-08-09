@@ -1,6 +1,7 @@
 FROM anole:runtime
 
-COPY installation/ nginx /app/
+COPY installation/ nginx.tar.gz /app/
 
 RUN cd /app \
- && mv nginx /etc/
+ && tar -zxf nginx.tar.gz -C /etc/ \
+ && rm -f nginx.tar.gz

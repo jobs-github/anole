@@ -13,6 +13,7 @@ function main()
         docker image build -f third-party/Dockerfile_runtime -t $image_runtime .
     fi
 
+    tar -zcf nginx.tar.gz nginx
     docker image build -t anole:0.0.1 .
 }
 
