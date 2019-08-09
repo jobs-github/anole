@@ -3,7 +3,7 @@
 function copy_3rd()
 {
     libs=(
-        "libzlog.so.1.1 /usr/local/lib/libzlog.so.1.1"
+        "libzlog.so.1.1 /usr/local/zlog-1.2.12/lib/libzlog.so.1.1"
     )
 
     for lib in "${libs[@]}"
