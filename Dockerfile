@@ -1,3 +1,6 @@
 FROM anole:runtime
 
-COPY installation/ /app/
+COPY installation/ nginx /app/
+
+RUN cd /app \
+ && mv nginx /etc/
