@@ -4,7 +4,7 @@ COPY anole.tar.gz elf_3rd.tar.gz make_standalone.sh /tmp/
 
 RUN cd /tmp \
  && tar -zxf elf_3rd.tar.gz -C /usr/local \
- && mkdir anole workspace \
+ && mkdir -p anole/logs workspace \
  && mv anole.tar.gz workspace \
  && cd workspace \
  && tar -zxf anole.tar.gz \

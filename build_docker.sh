@@ -1,0 +1,1 @@
+docker image build -t anole:0.0.1 .
