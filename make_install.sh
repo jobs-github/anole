@@ -70,6 +70,7 @@ function build_srv()
     mv ldd.txt src/
     test -d installation || mkdir -p installation
     mv $name_srv installation/
+    cd installation
     tar -zxf $name_srv
     rm -f $name_srv
 }
