@@ -1,6 +1,6 @@
 FROM ubuntu:devel
 
-COPY third-party.tar.gz boost_1_66_0.tar.gz /tmp
+COPY third-party.tar.gz boost_1_66_0.tar.gz /tmp/
 
 RUN cd /tmp \
  && tar -zxf third-party.tar.gz \
