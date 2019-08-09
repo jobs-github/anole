@@ -9,7 +9,5 @@ RUN cd /app \
 # Define mountable directories.
 VOLUME ["/app/anole/conf"]
 
-#CMD ["/app/anole/start.sh /app/anole/conf/server.json"]
-
 EXPOSE 80
 EXPOSE 443
