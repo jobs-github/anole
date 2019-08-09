@@ -13,6 +13,7 @@ RUN cd /tmp \
  && ./build.sh \
  && cd src \
  && cp ldd.txt /tmp \
+ && chmod +x start.sh \
  && cp anole start.sh /tmp/anole/ \
  && cd /tmp \
  && chmod a+x make_standalone.sh \
