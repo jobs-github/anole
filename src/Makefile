@@ -9,6 +9,7 @@ CXX = g++
 BIN = ./build/
 INCLUDE = -I /usr/local/include \
 	-I /usr/local/boost1.66/include \
+	-I /usr/local/zlog-1.2.12/include \
 	-I slothjson \
 	-I slothjson/rapidjson
 
@@ -20,7 +21,8 @@ LIB = -lboost_system \
 
 FLAGS = -std=c++11 -fPIC -O0 -g3 -Wall -fmessage-length=0 -D_FILE_OFFSET_BITS=64 -D_LARGE_FILE -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE
 LIB_3RD = -L /usr/local/lib \
-	-L /usr/local/boost1.66/lib
+	-L /usr/local/boost1.66/lib \
+	-L /usr/local/zlog-1.2.12/lib
 
 OBJECTS		= $(BIN)main.o \
 	$(BIN)anole.o \
