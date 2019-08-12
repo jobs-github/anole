@@ -8,6 +8,7 @@ RUN cd /app \
 
 # Define mountable directories.
 VOLUME ["/app/anole/conf"]
+VOLUME ["/app/anole/logs"]
 
 EXPOSE 80
 EXPOSE 443

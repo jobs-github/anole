@@ -1,7 +1,7 @@
 {
     "logger":
     {
-        "conf": "zlog.conf",
+        "conf": "/app/anole/conf/zlog.conf",
         "default_category": "anole"
     },
     "run_type": "server",
