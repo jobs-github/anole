@@ -44,7 +44,7 @@ void init_config(slothjson::config_t& config)
     }
     else
     {
-        config.rt = SERVER;
+        config.rt = CLIENT;
     }
 
     for (auto& pwd: config.password)
