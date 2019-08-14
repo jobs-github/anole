@@ -125,7 +125,7 @@ void server_session_t::on_handshake(const std::string& buf)
         }
         else
         {
-            zlog_debug(anole::cat(), "%s:%d authenticated as %s", SESS_ADDR, SESS_PORT, it->second.c_str());
+            zlog_debug(anole::cat(), "%s:%d authenticated", SESS_ADDR, SESS_PORT);
         }
     }
     // set query args
@@ -165,7 +165,7 @@ void server_session_t::on_resolve(const std::string& query_addr, uint16_t query_
 {
     if (err || rc.size() < 1)
     {
-        zlog_error(anole::cat(), "%s:%d cannot resolve remote server hostname  %s:%d", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port);
+        zlog_error(anole::cat(), "%s:%d cannot resolve remote server hostname  %s:%d, err: %s", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port, err.message().c_str());
         destory();
         return;
     }
@@ -205,7 +205,7 @@ void server_session_t::on_connect(const std::string& query_addr, uint16_t query_
 {
     if (err)
     {
-        zlog_error(anole::cat(), "%s:%d cannot establish connection to remote server %s:%d", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port);
+        zlog_error(anole::cat(), "%s:%d cannot establish connection to remote server %s:%d, err: %s", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port, err.message().c_str());
         destory();
         return;
     }
@@ -230,6 +230,7 @@ void server_session_t::out_async_read()
     out_socket_.async_read_some(boost::asio::buffer(sess_.out_read_buf, BUF_SIZE), [this, self](const boost::system::error_code err, size_t sz){
         if (err)
         {
+            zlog_error(anole::cat(), "%s:%d, err: %s", SESS_ADDR, SESS_PORT, err.message().c_str());
             destory();
             return;
         }
@@ -249,6 +250,7 @@ void server_session_t::out_async_write(const std::string& buf)
     boost::asio::async_write(out_socket_, boost::asio::buffer(*data), [this, self, data](const boost::system::error_code err, size_t sz){
         if (err)
         {
+            zlog_error(anole::cat(), "%s:%d, err: %s", SESS_ADDR, SESS_PORT, err.message().c_str());
             destory();
             return;
         }
@@ -267,6 +269,7 @@ void server_session_t::in_async_write(const std::string& buf)
     boost::asio::async_write(in_socket_, boost::asio::buffer(*data), [this, self, data](const boost::system::error_code err, size_t sz){
         if (err)
         {
+            zlog_error(anole::cat(), "%s:%d, err: %s", SESS_ADDR, SESS_PORT, err.message().c_str());
             destory();
             return;
         }
@@ -329,6 +332,7 @@ void server_session_t::udp_sent()
             sess_.udp_socket.open(protocol, err);
             if (err)
             {
+                zlog_error(anole::cat(), "%s:%d, udp open err: %s", SESS_ADDR, SESS_PORT, err.message().c_str());
                 destory();
                 return;
             }
@@ -346,6 +350,7 @@ void server_session_t::udp_async_read()
     sess_.udp_socket.async_receive_from(boost::asio::buffer(sess_.udp_read_buf, BUF_SIZE), sess_.udp_recv_endpoint, [this, self](const boost::system::error_code err, size_t sz){
         if (err)
         {
+            zlog_error(anole::cat(), "%s:%d, err: %s", SESS_ADDR, SESS_PORT, err.message().c_str());
             destory();
             return;
         }
@@ -366,6 +371,7 @@ void server_session_t::udp_async_write(const std::string& buf, const boost::asio
     sess_.udp_socket.async_send_to(boost::asio::buffer(*data), endpoint, [this, self, data](const boost::system::error_code err, size_t sz){
         if (err)
         {
+            zlog_error(anole::cat(), "%s:%d, err: %s", SESS_ADDR, SESS_PORT, err.message().c_str());
             destory();
             return;
         }

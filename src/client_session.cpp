@@ -110,10 +110,12 @@ void client_session_t::in_async_read()
     in_socket_.async_read_some(boost::asio::buffer(sess_.in_read_buf, BUF_SIZE), [this, self](const boost::system::error_code err, size_t sz){
         if (boost::asio::error::operation_aborted == err)
         {
+            zlog_debug(anole::cat(), "%s:%d, %s", SESS_ADDR, SESS_PORT, err.message().c_str());
             return;
         }
         if (err)
         {
+            zlog_error(anole::cat(), "%s:%d, err: %s", SESS_ADDR, SESS_PORT, err.message().c_str());
             destory();
             return;
         }
@@ -201,6 +203,7 @@ void client_session_t::on_request(const std::string& buf)
         sess_.udp_socket.open(bindpoint.protocol(), err);
         if (err)
         {
+            zlog_error(anole::cat(), "%s:%d, udp open err: %s", SESS_ADDR, SESS_PORT, err.message().c_str());
             destory();
             return;
         }
@@ -231,6 +234,7 @@ void client_session_t::in_async_write(const std::string& buf)
     boost::asio::async_write(in_socket_, boost::asio::buffer(*data), [this, self, data](const boost::system::error_code err, size_t sz){
         if (err)
         {
+            zlog_error(anole::cat(), "%s:%d, err: %s", SESS_ADDR, SESS_PORT, err.message().c_str());
             destory();
             return;
         }
@@ -356,6 +360,7 @@ void client_session_t::out_async_read()
     out_socket_.async_read_some(boost::asio::buffer(sess_.out_read_buf, BUF_SIZE), [this, self](const boost::system::error_code err, size_t sz){
         if (err)
         {
+            zlog_error(anole::cat(), "%s:%d, err: %s", SESS_ADDR, SESS_PORT, err.message().c_str());
             destory();
             return;
         }
@@ -412,6 +417,7 @@ void client_session_t::udp_async_write(const std::string& buf)
     sess_.udp_socket.async_send_to(boost::asio::buffer(*data), sess_.udp_recv_endpoint, [this, self, data](const boost::system::error_code err, size_t sz){
         if (err)
         {
+            zlog_error(anole::cat(), "%s:%d, err: %s", SESS_ADDR, SESS_PORT, err.message().c_str());
             destory();
             return;
         }
@@ -427,6 +433,7 @@ void client_session_t::out_async_write(const std::string& buf)
     boost::asio::async_write(out_socket_, boost::asio::buffer(*data), [this, self, data](const boost::system::error_code err, size_t sz){
         if (err)
         {
+            zlog_error(anole::cat(), "%s:%d, err: %s", SESS_ADDR, SESS_PORT, err.message().c_str());
             destory();
             return;
         }
@@ -447,10 +454,12 @@ void client_session_t::udp_async_read()
     sess_.udp_socket.async_receive_from(boost::asio::buffer(sess_.udp_read_buf, BUF_SIZE), sess_.udp_recv_endpoint, [this, self](const boost::system::error_code err, size_t sz){
         if (boost::asio::error::operation_aborted == err)
         {
+            zlog_debug(anole::cat(), "%s:%d, %s", SESS_ADDR, SESS_PORT, err.message().c_str());
             return;
         }
         if (err)
         {
+            zlog_error(anole::cat(), "%s:%d, err: %s", SESS_ADDR, SESS_PORT, err.message().c_str());
             destory();
             return;
         }
