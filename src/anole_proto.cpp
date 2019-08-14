@@ -189,7 +189,7 @@ bool request_t::decode(const std::string& data)
         return false;
     }
     command = static_cast<command_e>(payload[0]);
-    int address_len = address.decode(data.substr(1));
+    int address_len = address.decode(payload.substr(1));
     if (-1 == address_len || payload.size() < size_t(address_len) + 3 || payload.substr(address_len + 1, 2) != CRLF)
     {
         return false;
