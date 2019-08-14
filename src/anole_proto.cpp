@@ -184,7 +184,7 @@ bool request_t::decode(const std::string& data)
     }
     password = data.substr(0, pos);
     payload = data.substr(pos + 2);
-    if (payload.size() < 1 || (payload[0] != CONNECT))
+    if (payload.size() < 1 || (payload[0] != CONNECT && payload[0] != UDP_ASSOCIATE))
     {
         return false;
     }
