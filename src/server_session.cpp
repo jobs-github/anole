@@ -48,7 +48,7 @@ void server_session_t::destory()
         return;
     }
     status_ = DESTORY;
-    zlog_debug(anole::cat(), "%s:%d disconnected, %d bytes received, %d bytes sent, lasted for %s sec", SESS_ADDR, SESS_PORT, sess_.recv_len, sess_.sent_len, time(NULL) - sess_.start_time);
+    zlog_debug(anole::cat(), "%s:%d disconnected, %d bytes received, %d bytes sent, lasted for %d sec", SESS_ADDR, SESS_PORT, sess_.recv_len, sess_.sent_len, time(NULL) - sess_.start_time);
     boost::system::error_code err;
     sess_.resolver.cancel();
     udp_resolver_.cancel();
@@ -125,7 +125,7 @@ void server_session_t::on_handshake(const std::string& buf)
         }
         else
         {
-            zlog_error(anole::cat(), "%s:%d authenticated as %s", SESS_ADDR, SESS_PORT, it->second.c_str());
+            zlog_debug(anole::cat(), "%s:%d authenticated as %s", SESS_ADDR, SESS_PORT, it->second.c_str());
         }
     }
     // set query args
@@ -209,7 +209,7 @@ void server_session_t::on_connect(const std::string& query_addr, uint16_t query_
         destory();
         return;
     }
-    zlog_error(anole::cat(), "%s:%d tunnel established %s:%d", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port);
+    zlog_debug(anole::cat(), "%s:%d tunnel established %s:%d", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port);
     status_ = FORWARD;
     // case out
     out_async_read();
