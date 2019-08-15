@@ -20,7 +20,7 @@ function main()
     mv private.key private.or.key
     openssl rsa -in private.or.key -out private.key
     openssl x509 -req -days 3650 -in private.csr -signkey private.key -out private.crt
-    openssl x509 -outform der -in private.csr -out private.der
+    openssl x509 -outform der -in private.crt -out private.der
     # private.der => ios
 }
 
