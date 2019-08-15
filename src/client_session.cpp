@@ -483,7 +483,7 @@ void client_session_t::udp_async_read()
             return;
         }
         size_t data_len = buf.size() - 3 - addr_len;
-        zlog_debug(anole::cat(), "%s:%d sent udp packet (%d bytes) to %s:%d", SESS_ADDR, SESS_PORT, data_len, addr.address.c_str(), addr.port);
+        zlog_debug(anole::cat(), "%s:%d sent udp packet (%lu bytes) to %s:%d", SESS_ADDR, SESS_PORT, data_len, addr.address.c_str(), addr.port);
 
         std::string packet = buf.substr(3, addr_len) + char(uint8_t(data_len >> 8)) + char(uint8_t(data_len & 0xFF)) + "\r\n" + buf.substr(addr_len + 3);
         sess_.sent_len += data_len;
@@ -506,7 +506,7 @@ void client_session_t::destory()
         return;
     }
     status_ = DESTORY;
-    zlog_debug(anole::cat(), "%s:%d disconnected, %d bytes received, %d bytes sent, lasted for %d sec", SESS_ADDR, SESS_PORT, sess_.recv_len, sess_.sent_len, time(NULL) - sess_.start_time);
+    zlog_debug(anole::cat(), "%s:%d disconnected, %lu bytes received, %lu bytes sent, lasted for %ld sec", SESS_ADDR, SESS_PORT, sess_.recv_len, sess_.sent_len, time(NULL) - sess_.start_time);
     boost::system::error_code err;
     sess_.resolver.cancel();
     if (in_socket_.is_open())

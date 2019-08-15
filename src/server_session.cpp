@@ -48,7 +48,7 @@ void server_session_t::destory()
         return;
     }
     status_ = DESTORY;
-    zlog_debug(anole::cat(), "%s:%d disconnected, %d bytes received, %d bytes sent, lasted for %d sec", SESS_ADDR, SESS_PORT, sess_.recv_len, sess_.sent_len, time(NULL) - sess_.start_time);
+    zlog_debug(anole::cat(), "%s:%d disconnected, %lu bytes received, %lu bytes sent, lasted for %ld sec", SESS_ADDR, SESS_PORT, sess_.recv_len, sess_.sent_len, time(NULL) - sess_.start_time);
     boost::system::error_code err;
     sess_.resolver.cancel();
     udp_resolver_.cancel();
@@ -357,7 +357,7 @@ void server_session_t::udp_async_read()
         std::string buf((const char *)sess_.udp_read_buf, sz);
         if (UDP_FORWARD == status_)
         {
-            zlog_debug(anole::cat(), "%s:%d receive udp packet from %s:%d, len: %d", SESS_ADDR, SESS_PORT, sess_.udp_recv_endpoint.address().to_string().c_str(), sess_.udp_recv_endpoint.port(), sz);
+            zlog_debug(anole::cat(), "%s:%d receive udp packet from %s:%d, len: %lu", SESS_ADDR, SESS_PORT, sess_.udp_recv_endpoint.address().to_string().c_str(), sess_.udp_recv_endpoint.port(), sz);
             sess_.recv_len += sz;
             in_async_write(udp_packet_t::encode(sess_.udp_recv_endpoint, buf));
         }
