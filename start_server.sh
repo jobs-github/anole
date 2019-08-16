@@ -2,23 +2,23 @@
 
 function test()
 {
-    docker run -it \
-        --name anole \
+    docker run -it --name anole \
+        -p 80:80 -p 443:443  \
         -v /app/anole/conf:/app/anole/conf  \
         -v /app/anole/logs:/app/anole/logs  \
-        --mount type=bind,source=/home/$USER,target=/mnt/hgfs/share \
-        -p 8080:80 -p 4343:443  \
+        --mount type=bind,source=$HOME,target=/mnt/hgfs/share \
         anole:0.0.1 bash
 }
 
 function start()
 {
     cmd="/etc/init.d/nginx start && /app/anole/start.sh /app/anole/conf/server.json"
-    docker run --name anole --restart=always -d -p 80:80 -p 443:443 \
+    docker run --name anole --restart=always -d \
+        -p 80:80 -p 443:443 \
         -v /app/anole/conf:/app/anole/conf  \
         -v /app/anole/logs:/app/anole/logs  \
+        --mount type=bind,source=$HOME,target=/mnt/hgfs/share \
         anole:0.0.1 \
-        --mount type=bind,source=/home/$USER,target=/mnt/hgfs/share \
         sh -c $cmd
 } 
 
