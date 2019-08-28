@@ -204,6 +204,7 @@ std::string udp_packet_t::encode(const boost::asio::ip::udp::endpoint& endpoint,
     size_t sz = payload.size();
     buf += (char)((uint8_t)(sz >> 8));
     buf += (char)((uint8_t)(sz & 0xFF));
+    buf += CRLF;
     buf += payload;
     return buf;
 }
@@ -216,7 +217,7 @@ int udp_packet_t::decode(const std::string& data)
         return -1;
     }
     length = decode_uint16(data, addr_len);
-    if (data.size() < (size_t)addr_len + 4 + length || data.substr(addr_len + 2, 2) != "\r\n")
+    if (data.size() < (size_t)addr_len + 4 + length || data.substr(addr_len + 2, 2) != CRLF)
     {
         return -1;
     }
