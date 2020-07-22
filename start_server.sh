@@ -7,7 +7,7 @@ function test()
         -v /app/anole/conf:/app/anole/conf  \
         -v /app/anole/logs:/app/anole/logs  \
         --mount type=bind,source=$HOME,target=/mnt/hgfs/share \
-        anole:0.0.1 bash
+        anole:0.0.2 bash
 }
 
 function start()
@@ -17,7 +17,7 @@ function start()
         -v /app/anole/conf:/app/anole/conf  \
         -v /app/anole/logs:/app/anole/logs  \
         --mount type=bind,source=$HOME,target=/mnt/hgfs/share \
-        anole:0.0.1 \
+        anole:0.0.2 \
         sh -c "/etc/init.d/nginx start && /app/anole/start.sh /app/anole/conf/server.json"
 } 
 
