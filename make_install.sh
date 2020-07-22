@@ -31,10 +31,10 @@ function build_3rd()
         docker image build -f Dockerfile_devel -t $image_devel .
     fi
 
-    if [ ! -f "boost_1_66_0.tar.gz" ]; then 
-        wget https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz
+    if [ ! -f "boost_1_73_0.tar.gz" ]; then 
+        wget https://dl.bintray.com/boostorg/release/1.73.0/source/boost_1_73_0.tar.gz
     else
-        echo "boost_1_66_0.tar.gz exist"
+        echo "boost_1_73_0.tar.gz exist"
     fi
     
     docker image build -f Dockerfile_3rd -t $image_3rd_name .

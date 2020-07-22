@@ -25,7 +25,7 @@ def manual():
     usage:
         python ldd.py [elf] [dir] [dir] ...
     sample:
-        python ldd.py anole /usr/ /lib/x86_64-linux-gnu/ /usr/local/lib/ /usr/local/boost1.66/lib/
+        python ldd.py anole /usr/ /lib/x86_64-linux-gnu/ /usr/local/lib/ /usr/local/boost_1_73_0/lib/
         """
 
 def acceptable(line):
