@@ -1,6 +1,6 @@
 #include "utils.h"
 #include <list>
-#include <openssl/sha.h>
+#include <openssl/evp.h>
 
 namespace anole { \
 
@@ -21,18 +21,65 @@ void set_mdc(const char * mdc)
     zlog_put_mdc(MDC_KEY, mdc);
 }
 
+struct evp_md_ctx_t
+{
+    EVP_MD_CTX * ctx_;
+
+    evp_md_ctx_t();
+    ~evp_md_ctx_t();
+
+    unsigned int encode(const std::string& plain, uint8_t *digest);
+};
+
+evp_md_ctx_t::evp_md_ctx_t() : ctx_(NULL) {}
+
+evp_md_ctx_t::~evp_md_ctx_t()
+{
+    if (NULL == ctx_)
+    {
+        return;
+    }
+    EVP_MD_CTX_free(ctx_);
+}
+
+unsigned int evp_md_ctx_t::encode(const std::string& plain, uint8_t *digest)
+{
+    ctx_ = EVP_MD_CTX_new();
+    if (!ctx_)
+    {
+        return -1;
+    }
+    if (!EVP_DigestInit_ex(ctx_, EVP_sha224(), NULL))
+    {
+        return -1;
+    }
+    if (!EVP_DigestUpdate(ctx_, plain.c_str(), plain.length()))
+    {
+        return -1;
+    }
+    unsigned int digest_len;
+    if (!EVP_DigestFinal_ex(ctx_, digest, &digest_len))
+    {
+        return -1;
+    }
+    return digest_len;
+}
+
 std::string sha224(const std::string& plain)
 {
-    uint8_t digest[SHA224_DIGEST_LENGTH];
-    SHA256_CTX ctx;
-    SHA224_Init(&ctx);
-    SHA224_Update(&ctx, plain.c_str(), plain.size());
-    SHA224_Final(digest, &ctx);
-    char cipher[(SHA224_DIGEST_LENGTH << 1) + 1];
-    for (int i = 0; i < SHA224_DIGEST_LENGTH; i++)
+    evp_md_ctx_t ctx;
+    uint8_t digest[EVP_MAX_MD_SIZE];
+    unsigned int digest_len = ctx.encode(plain, digest);
+    if (digest_len < 0)
+    {
+        return "";
+    }
+    char cipher[(EVP_MAX_MD_SIZE << 1) + 1];
+    for (unsigned int i = 0; i < digest_len; i++)
     {
         sprintf(cipher + (i << 1), "%02x", (unsigned int)digest[i]);
     }
+    cipher[digest_len << 1] = '\0';
     return std::string(cipher);
 }
 
