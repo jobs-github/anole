@@ -14,6 +14,10 @@ ssl_context_(boost::asio::ssl::context::sslv23)
     boost::asio::ip::tcp::endpoint listen_endpoint = *resolver.resolve(config.local_addr, anole::to_string(config.local_port)).begin();
     socket_acceptor_.open(listen_endpoint.protocol());
     socket_acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+    if (config.tcp.reuse_port)
+    {
+        socket_acceptor_.set_option(boost::asio::detail::socket_option::boolean<SOL_SOCKET, SO_REUSEPORT>(true));
+    }
     socket_acceptor_.bind(listen_endpoint);
     socket_acceptor_.listen();
 
@@ -22,6 +26,10 @@ ssl_context_(boost::asio::ssl::context::sslv23)
         | boost::asio::ssl::context::no_sslv2
         | boost::asio::ssl::context::no_sslv3
         | boost::asio::ssl::context::single_dh_use);
+    if  (!config.ssl.curves.empty())
+    {
+        SSL_CTX_set1_curves_list(native_handle, config.ssl.curves.c_str());
+    }
 
     if (anole::SERVER == config.rt)
     {
@@ -34,9 +42,13 @@ ssl_context_(boost::asio::ssl::context::sslv23)
     {
         init_client(config, native_handle);
     }
-    if (config.ssl.cipher != "")
+    if (!config.ssl.cipher.empty())
     {
         SSL_CTX_set_cipher_list(native_handle, config.ssl.cipher.c_str());
+    }
+    if (!config.ssl.cipher_tls13.empty())
+    {
+        SSL_CTX_set_ciphersuites(native_handle, config.ssl.cipher_tls13.c_str());
     }
     init_tcp(config);
 }
@@ -53,7 +65,7 @@ bool anole_t::init_server(slothjson::config_t& config, SSL_CTX * native_handle)
     {
         SSL_CTX_set_options(native_handle, SSL_OP_CIPHER_SERVER_PREFERENCE);
     }
-    if (config.ssl.alpn_str != "")
+    if (!config.ssl.alpn_str.empty())
     {
         SSL_CTX_set_alpn_select_cb(native_handle, [](SSL*, const unsigned char **out, unsigned char *outlen, const unsigned char *in, unsigned int inlen, void *config) -> int {
             auto alpn = ((slothjson::config_t *)config)->ssl.alpn_str.c_str();
@@ -84,14 +96,14 @@ bool anole_t::init_server(slothjson::config_t& config, SSL_CTX * native_handle)
 
 void anole_t::init_client(slothjson::config_t& config, SSL_CTX * native_handle)
 {
-    if (config.ssl.sni == "")
+    if (config.ssl.sni.empty())
     {
         config.ssl.sni = config.remote_addr;
     }
     if (config.ssl.verify)
     {
         ssl_context_.set_verify_mode(SSL_VERIFY_PEER);
-        if (config.ssl.cert == "")
+        if (config.ssl.cert.empty())
         {
             ssl_context_.set_default_verify_paths();
         }
@@ -101,7 +113,11 @@ void anole_t::init_client(slothjson::config_t& config, SSL_CTX * native_handle)
         }
         if (config.ssl.verify_hostname)
         {
+#if BOOST_VERSION >= 107300
+            ssl_context_.set_verify_callback(boost::asio::ssl::host_name_verification(config.ssl.sni));
+#else
             ssl_context_.set_verify_callback(boost::asio::ssl::rfc2818_verification(config.ssl.sni));
+#endif
         }
         X509_VERIFY_PARAM * param = X509_VERIFY_PARAM_new();
         X509_VERIFY_PARAM_set_flags(param, X509_V_FLAG_PARTIAL_CHAIN);
@@ -112,7 +128,7 @@ void anole_t::init_client(slothjson::config_t& config, SSL_CTX * native_handle)
     {
         ssl_context_.set_verify_mode(SSL_VERIFY_NONE);
     }
-    if (config.ssl.alpn_str != "")
+    if (!config.ssl.alpn_str.empty())
     {
         SSL_CTX_set_alpn_protos(native_handle, (unsigned char*)config.ssl.alpn_str.c_str(), config.ssl.alpn_str.size());
     }

@@ -123,6 +123,9 @@ ssl_config_t::ssl_config_t()
     session_timeout = 600;
     __skip_session_timeout = false;
     __json_has_session_timeout = false;
+
+    __skip_curves = false;
+    __json_has_curves = false;
 }
 
 ssl_config_t& ssl_config_t::operator=(const ssl_config_t& obj_val)
@@ -141,6 +144,7 @@ ssl_config_t& ssl_config_t::operator=(const ssl_config_t& obj_val)
     this->alpn_str = obj_val.alpn_str;
     this->reuse_session = obj_val.reuse_session;
     this->session_timeout = obj_val.session_timeout;
+    this->curves = obj_val.curves;
     return *this;
 }
 
@@ -160,6 +164,7 @@ bool ssl_config_t::operator==(const ssl_config_t& obj_val) const
     if (!(this->alpn_str == obj_val.alpn_str)) return false;
     if (!(this->reuse_session == obj_val.reuse_session)) return false;
     if (!(this->session_timeout == obj_val.session_timeout)) return false;
+    if (!(this->curves == obj_val.curves)) return false;
     return true;
 }
 
@@ -182,6 +187,7 @@ bool ssl_config_t::encode(allocator_t& alloc, rapidjson::Value& json_val) const
         if (!__skip_alpn_str && !encode_field(alpn_str, "alpn_str", alloc, json_val)) break;
         if (!__skip_reuse_session && !encode_field(reuse_session, "reuse_session", alloc, json_val)) break;
         if (!__skip_session_timeout && !encode_field(session_timeout, "session_timeout", alloc, json_val)) break;
+        if (!__skip_curves && !encode_field(curves, "curves", alloc, json_val)) break;
 
         return true;
     } while (0);
@@ -207,6 +213,7 @@ bool ssl_config_t::decode(const rapidjson::Value& json_val)
         if (!decode_field(json_val, "alpn_str", alpn_str, __json_has_alpn_str)) break;
         if (!decode_field(json_val, "reuse_session", reuse_session, __json_has_reuse_session)) break;
         if (!decode_field(json_val, "session_timeout", session_timeout, __json_has_session_timeout)) break;
+        if (!decode_field(json_val, "curves", curves, __json_has_curves)) break;
 
         return true;
     } while (0);
