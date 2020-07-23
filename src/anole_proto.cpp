@@ -216,6 +216,10 @@ std::string udp_packet_t::encode(const boost::asio::ip::udp::endpoint& endpoint,
 
 int udp_packet_t::decode(const std::string& data)
 {
+    if (data.length() < 1)
+    {
+        return -1;
+    }
     addr_len = address.decode(data);
     if (addr_len < 0 || data.size() < (size_t)addr_len + 2)
     {
