@@ -23,7 +23,7 @@ void set_mdc(const char * mdc)
 
 struct evp_md_ctx_t
 {
-    EVP_MD_CTX * ctx_;
+    EVP_MD_CTX * mdctx;
 
     evp_md_ctx_t();
     ~evp_md_ctx_t();
@@ -31,34 +31,34 @@ struct evp_md_ctx_t
     unsigned int encode(const std::string& plain, uint8_t *digest);
 };
 
-evp_md_ctx_t::evp_md_ctx_t() : ctx_(NULL) {}
+evp_md_ctx_t::evp_md_ctx_t() : mdctx(NULL) {}
 
 evp_md_ctx_t::~evp_md_ctx_t()
 {
-    if (NULL == ctx_)
+    if (NULL == mdctx)
     {
         return;
     }
-    EVP_MD_CTX_free(ctx_);
+    EVP_MD_CTX_free(mdctx);
 }
 
 unsigned int evp_md_ctx_t::encode(const std::string& plain, uint8_t *digest)
 {
-    ctx_ = EVP_MD_CTX_new();
-    if (!ctx_)
+    mdctx = EVP_MD_CTX_new();
+    if (!mdctx)
     {
         return -1;
     }
-    if (!EVP_DigestInit_ex(ctx_, EVP_sha224(), NULL))
+    if (!EVP_DigestInit_ex(mdctx, EVP_sha224(), NULL))
     {
         return -1;
     }
-    if (!EVP_DigestUpdate(ctx_, plain.c_str(), plain.length()))
+    if (!EVP_DigestUpdate(mdctx, plain.c_str(), plain.length()))
     {
         return -1;
     }
     unsigned int digest_len;
-    if (!EVP_DigestFinal_ex(ctx_, digest, &digest_len))
+    if (!EVP_DigestFinal_ex(mdctx, digest, &digest_len))
     {
         return -1;
     }
