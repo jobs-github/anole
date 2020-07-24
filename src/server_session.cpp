@@ -110,6 +110,27 @@ void server_session_t::in_async_read()
     });
 }
 
+uint16_t server_session_t::get_query_port(bool decode_ok, const anole::request_t& req)
+{
+    if (decode_ok)
+    {
+        return req.address.port;
+    }
+    const unsigned char *alpn_out;
+    unsigned int alpn_len;
+    SSL_get0_alpn_selected(in_socket_.native_handle(), &alpn_out, &alpn_len);
+    if (NULL == alpn_out)
+    {
+        return sess_.config.remote_port;
+    }
+    auto it = sess_.config.ssl.alpn_port_override.find(std::string(alpn_out, alpn_out + alpn_len));
+    if (sess_.config.ssl.alpn_port_override.end() == it)
+    {
+        return sess_.config.remote_port;
+    }
+    return it->second;
+}
+
 void server_session_t::on_handshake(const std::string& buf)
 {
     anole::request_t req;
@@ -130,7 +151,7 @@ void server_session_t::on_handshake(const std::string& buf)
     }
     // set query args
     std::string query_addr = ok ? req.address.address : sess_.config.remote_addr;
-    uint16_t query_port = (ok ? req.address.port : sess_.config.remote_port);
+    uint16_t query_port = get_query_port(ok, req);
     if (ok)
     {
         sess_.out_write_buf = req.payload;
@@ -156,16 +177,22 @@ void server_session_t::on_handshake(const std::string& buf)
 
     // resolve remote
     auto self = shared_from_this();
-    sess_.resolver.async_resolve(query_addr, to_string(query_port), [this, self, query_addr, query_port](const boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type rc){
+    sess_.resolver.async_resolve(query_addr, to_string(query_port), [this, self, query_addr, query_port](const boost::system::error_code err, const boost::asio::ip::tcp::resolver::results_type& rc){
         on_resolve(query_addr, query_port, err, rc);
     });
 }
 
-void server_session_t::on_resolve(const std::string& query_addr, uint16_t query_port, const boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type rc)
+void server_session_t::on_resolve(const std::string& query_addr, uint16_t query_port, const boost::system::error_code err, const boost::asio::ip::tcp::resolver::results_type& rc)
 {
-    if (err || rc.size() < 1)
+    if (err)
     {
         zlog_error(anole::cat(), "%s:%d cannot resolve remote server hostname  %s:%d, err: %s", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port, err.message().c_str());
+        destory();
+        return;
+    }
+    if (rc.empty())
+    {
+        zlog_error(anole::cat(), "%s:%d cannot resolve remote server hostname  %s:%d, result empty", SESS_ADDR, SESS_PORT, query_addr.c_str(), query_port);
         destory();
         return;
     }
@@ -214,7 +241,7 @@ void server_session_t::on_connect(const std::string& query_addr, uint16_t query_
     // case out
     out_async_read();
     // case in
-    if (sess_.out_write_buf != "")
+    if (!sess_.out_write_buf.empty())
     {
         out_async_write(sess_.out_write_buf);
     }
@@ -309,10 +336,16 @@ void server_session_t::udp_sent()
     std::string query_addr = packet.address.address;
     std::string query_port = to_string(packet.address.port);
     auto self = shared_from_this();
-    udp_resolver_.async_resolve(query_addr, query_port, [this, self, packet, query_addr](const boost::system::error_code err, boost::asio::ip::udp::resolver::results_type rc){
+    udp_resolver_.async_resolve(query_addr, query_port, [this, self, packet, query_addr](const boost::system::error_code err, const boost::asio::ip::udp::resolver::results_type& rc){
         if (err)
         {
             zlog_error(anole::cat(), "%s:%d can not resolve remote server: %s, err: %s", SESS_ADDR, SESS_PORT, query_addr.c_str(), err.message().c_str());
+            destory();
+            return;
+        }
+        if (rc.empty())
+        {
+            zlog_error(anole::cat(), "%s:%d can not resolve remote server: %s, result empty", SESS_ADDR, SESS_PORT, query_addr.c_str());
             destory();
             return;
         }
