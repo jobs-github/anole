@@ -7,7 +7,7 @@ function main()
     echo "============================"
     echo "set password (5-10 digit)"
     echo "============================"
-    openssl genrsa -des3 -out private.key 1024
+    openssl genrsa -des3 -out private.key 2048
     #openssl genrsa -out private.key 2048
     echo "============================"
     echo "type password you just set"
