@@ -22,7 +22,7 @@ function main()
 
     # make    
     make
-    python ldd.py anole /usr/ /lib/x86_64-linux-gnu/ /usr/local/lib/ /usr/local/boost_1_73_0/lib/
+    python ldd.py anole /usr/ /lib/x86_64-linux-gnu/ /usr/local/lib/ /usr/local/boost1.66/lib/
     # output anole & ldd.txt in src
 }
 
