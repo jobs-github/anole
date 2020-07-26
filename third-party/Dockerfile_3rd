@@ -11,9 +11,9 @@ RUN cd /tmp \
  && tar -zxf boost_1_66_0.tar.gz \
  && cd boost_1_66_0 \
  && ./bootstrap.sh \
- && ./b2 install --prefix=/usr/local/boost1.66 \
+ && ./b2 install --prefix=/usr/local/boost_1_66_0 \
  && cd /tmp \
  && rm -rf boost_1_66_0 third-party third-party.tar.gz boost_1_66_0.tar.gz \
  && cd /usr/local \
- && tar -zcf elf_3rd.tar.gz zlog-1.2.15 boost1.66 \
+ && tar -zcf elf_3rd.tar.gz zlog-1.2.15 boost_1_66_0 \
  && mv elf_3rd.tar.gz /tmp/
