@@ -1,4 +1,4 @@
-FROM ubuntu:devel
+FROM ubuntu:20.04.dev
 
 COPY third-party.tar.gz boost_1_66_0.tar.gz /tmp/
 

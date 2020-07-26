@@ -1,4 +1,4 @@
-FROM ubuntu:devel
+FROM ubuntu:20.04.dev
 
 COPY anole.tar.gz elf_3rd.tar.gz make_standalone.sh /tmp/
 
