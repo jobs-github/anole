@@ -83,7 +83,7 @@ void client_session_t::start()
         return;
     }
     auto ssl = out_socket_.native_handle();
-    if (sess_.config.ssl.sni != "")
+    if (!sess_.config.ssl.sni.empty())
     {
         SSL_set_tlsext_host_name(ssl, sess_.config.ssl.sni.c_str());
     }
@@ -268,16 +268,22 @@ void client_session_t::establish_tunnel()
         udp_async_read();
     }
     auto self = shared_from_this();
-    sess_.resolver.async_resolve(sess_.config.remote_addr, to_string(sess_.config.remote_port), [this, self](const boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type rc){
+    sess_.resolver.async_resolve(sess_.config.remote_addr, to_string(sess_.config.remote_port), [this, self](const boost::system::error_code err, const boost::asio::ip::tcp::resolver::results_type& rc){
         on_resolve(err, rc);
     });
 }
 
-void client_session_t::on_resolve(const boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type rc)
+void client_session_t::on_resolve(const boost::system::error_code err, const boost::asio::ip::tcp::resolver::results_type& rc)
 {
     if (err)
     {
         zlog_error(anole::cat(), "%s:%d could not resolve remote server %s, %s", SESS_ADDR, SESS_PORT, sess_.config.remote_addr.c_str(), err.message().c_str());
+        destory();
+        return;
+    }
+    if (rc.empty())
+    {
+        zlog_error(anole::cat(), "%s:%d could not resolve remote server %s, result empty", SESS_ADDR, SESS_PORT, sess_.config.remote_addr.c_str());
         destory();
         return;
     }
@@ -397,6 +403,13 @@ void client_session_t::udp_sent()
     }
     zlog_debug(anole::cat(), "%s:%d receive udp packet from %s:%d, len: %d", SESS_ADDR, SESS_PORT, packet.address.address.c_str(), packet.address.port, packet.length);
 
+    if (packet.addr_len < 0)
+    {
+        zlog_error(anole::cat(), "%s:%d invalid udp packet address", SESS_ADDR, SESS_PORT);
+        destory();
+        return;
+    }
+    
     auto head = make_udp_head();
     std::string reply(head.data, head.len);
     reply.append(sess_.udp_data_buf.substr(packet.addr_len));

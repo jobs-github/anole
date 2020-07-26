@@ -3,7 +3,7 @@
 option=$1
 cwd=$(dirname $(readlink -f $0))
 
-image_devel="ubuntu:devel"
+image_devel="ubuntu:20.04.dev"
 image_3rd_name="ubuntu:anole-3rd-build"
 container_3rd_name="anole-3rd-build"
 
@@ -77,7 +77,7 @@ function build_srv()
 
 function main()
 {
-    git archive --format=tar HEAD | gzip > anole.tar.gz
+    git archive master --format=tar | gzip > anole.tar.gz
 
     file_3rd=$dir_3rd/$name_3rd
 

@@ -138,11 +138,16 @@ int sock5_address_t::decode_ipv4(const std::string& data)
 
 int sock5_address_t::decode_domain(const std::string& data)
 {
-    size_t len = size_t(data[1] + 4);
+    uint8_t domain_len = data[1];
+    if (0 == domain_len)
+    {
+        return -1;
+    }
+    size_t len = size_t(domain_len + 4);
     if (data.size() >= len)
     {
-        address = data.substr(2, data[1]);
-        port = decode_port(data, data[1] + 2);
+        address = data.substr(2, domain_len);
+        port = decode_port(data, domain_len + 2);
         return len;
     }
     return -1;
@@ -211,6 +216,10 @@ std::string udp_packet_t::encode(const boost::asio::ip::udp::endpoint& endpoint,
 
 int udp_packet_t::decode(const std::string& data)
 {
+    if (data.length() < 1)
+    {
+        return -1;
+    }
     addr_len = address.decode(data);
     if (addr_len < 0 || data.size() < (size_t)addr_len + 2)
     {

@@ -14,12 +14,17 @@ tcp_config_t::tcp_config_t()
     keep_alive = true;
     __skip_keep_alive = false;
     __json_has_keep_alive = false;
+
+    reuse_port = false;
+    __skip_reuse_port = false;
+    __json_has_reuse_port = false;
 }
 
 tcp_config_t& tcp_config_t::operator=(const tcp_config_t& obj_val)
 {
     this->no_delay = obj_val.no_delay;
     this->keep_alive = obj_val.keep_alive;
+    this->reuse_port = obj_val.reuse_port;
     return *this;
 }
 
@@ -27,6 +32,7 @@ bool tcp_config_t::operator==(const tcp_config_t& obj_val) const
 {
     if (!(this->no_delay == obj_val.no_delay)) return false;
     if (!(this->keep_alive == obj_val.keep_alive)) return false;
+    if (!(this->reuse_port == obj_val.reuse_port)) return false;
     return true;
 }
 
@@ -37,6 +43,7 @@ bool tcp_config_t::encode(allocator_t& alloc, rapidjson::Value& json_val) const
         json_val.SetObject();
         if (!__skip_no_delay && !encode_field(no_delay, "no_delay", alloc, json_val)) break;
         if (!__skip_keep_alive && !encode_field(keep_alive, "keep_alive", alloc, json_val)) break;
+        if (!__skip_reuse_port && !encode_field(reuse_port, "reuse_port", alloc, json_val)) break;
 
         return true;
     } while (0);
@@ -50,6 +57,7 @@ bool tcp_config_t::decode(const rapidjson::Value& json_val)
     {
         if (!decode_field(json_val, "no_delay", no_delay, __json_has_no_delay)) break;
         if (!decode_field(json_val, "keep_alive", keep_alive, __json_has_keep_alive)) break;
+        if (!decode_field(json_val, "reuse_port", reuse_port, __json_has_reuse_port)) break;
 
         return true;
     } while (0);
@@ -89,6 +97,9 @@ ssl_config_t::ssl_config_t()
     __skip_cipher = false;
     __json_has_cipher = false;
 
+    __skip_cipher_tls13 = false;
+    __json_has_cipher_tls13 = false;
+
     prefer_server_cipher = true;
     __skip_prefer_server_cipher = false;
     __json_has_prefer_server_cipher = false;
@@ -98,6 +109,9 @@ ssl_config_t::ssl_config_t()
 
     __skip_alpn = false;
     __json_has_alpn = false;
+
+    __skip_alpn_port_override = false;
+    __json_has_alpn_port_override = false;
 
     __skip_alpn_str = false;
     __json_has_alpn_str = false;
@@ -109,6 +123,9 @@ ssl_config_t::ssl_config_t()
     session_timeout = 600;
     __skip_session_timeout = false;
     __json_has_session_timeout = false;
+
+    __skip_curves = false;
+    __json_has_curves = false;
 }
 
 ssl_config_t& ssl_config_t::operator=(const ssl_config_t& obj_val)
@@ -119,12 +136,15 @@ ssl_config_t& ssl_config_t::operator=(const ssl_config_t& obj_val)
     this->key = obj_val.key;
     this->key_password = obj_val.key_password;
     this->cipher = obj_val.cipher;
+    this->cipher_tls13 = obj_val.cipher_tls13;
     this->prefer_server_cipher = obj_val.prefer_server_cipher;
     this->sni = obj_val.sni;
     this->alpn = obj_val.alpn;
+    this->alpn_port_override = obj_val.alpn_port_override;
     this->alpn_str = obj_val.alpn_str;
     this->reuse_session = obj_val.reuse_session;
     this->session_timeout = obj_val.session_timeout;
+    this->curves = obj_val.curves;
     return *this;
 }
 
@@ -136,12 +156,15 @@ bool ssl_config_t::operator==(const ssl_config_t& obj_val) const
     if (!(this->key == obj_val.key)) return false;
     if (!(this->key_password == obj_val.key_password)) return false;
     if (!(this->cipher == obj_val.cipher)) return false;
+    if (!(this->cipher_tls13 == obj_val.cipher_tls13)) return false;
     if (!(this->prefer_server_cipher == obj_val.prefer_server_cipher)) return false;
     if (!(this->sni == obj_val.sni)) return false;
     if (!(this->alpn == obj_val.alpn)) return false;
+    if (!(this->alpn_port_override == obj_val.alpn_port_override)) return false;
     if (!(this->alpn_str == obj_val.alpn_str)) return false;
     if (!(this->reuse_session == obj_val.reuse_session)) return false;
     if (!(this->session_timeout == obj_val.session_timeout)) return false;
+    if (!(this->curves == obj_val.curves)) return false;
     return true;
 }
 
@@ -156,12 +179,15 @@ bool ssl_config_t::encode(allocator_t& alloc, rapidjson::Value& json_val) const
         if (!__skip_key && !encode_field(key, "key", alloc, json_val)) break;
         if (!__skip_key_password && !encode_field(key_password, "key_password", alloc, json_val)) break;
         if (!__skip_cipher && !encode_field(cipher, "cipher", alloc, json_val)) break;
+        if (!__skip_cipher_tls13 && !encode_field(cipher_tls13, "cipher_tls13", alloc, json_val)) break;
         if (!__skip_prefer_server_cipher && !encode_field(prefer_server_cipher, "prefer_server_cipher", alloc, json_val)) break;
         if (!__skip_sni && !encode_field(sni, "sni", alloc, json_val)) break;
         if (!__skip_alpn && !encode_field(alpn, "alpn", alloc, json_val)) break;
+        if (!__skip_alpn_port_override && !encode_field(alpn_port_override, "alpn_port_override", alloc, json_val)) break;
         if (!__skip_alpn_str && !encode_field(alpn_str, "alpn_str", alloc, json_val)) break;
         if (!__skip_reuse_session && !encode_field(reuse_session, "reuse_session", alloc, json_val)) break;
         if (!__skip_session_timeout && !encode_field(session_timeout, "session_timeout", alloc, json_val)) break;
+        if (!__skip_curves && !encode_field(curves, "curves", alloc, json_val)) break;
 
         return true;
     } while (0);
@@ -179,12 +205,15 @@ bool ssl_config_t::decode(const rapidjson::Value& json_val)
         if (!decode_field(json_val, "key", key, __json_has_key)) break;
         if (!decode_field(json_val, "key_password", key_password, __json_has_key_password)) break;
         if (!decode_field(json_val, "cipher", cipher, __json_has_cipher)) break;
+        if (!decode_field(json_val, "cipher_tls13", cipher_tls13, __json_has_cipher_tls13)) break;
         if (!decode_field(json_val, "prefer_server_cipher", prefer_server_cipher, __json_has_prefer_server_cipher)) break;
         if (!decode_field(json_val, "sni", sni, __json_has_sni)) break;
         if (!decode_field(json_val, "alpn", alpn, __json_has_alpn)) break;
+        if (!decode_field(json_val, "alpn_port_override", alpn_port_override, __json_has_alpn_port_override)) break;
         if (!decode_field(json_val, "alpn_str", alpn_str, __json_has_alpn_str)) break;
         if (!decode_field(json_val, "reuse_session", reuse_session, __json_has_reuse_session)) break;
         if (!decode_field(json_val, "session_timeout", session_timeout, __json_has_session_timeout)) break;
+        if (!decode_field(json_val, "curves", curves, __json_has_curves)) break;
 
         return true;
     } while (0);

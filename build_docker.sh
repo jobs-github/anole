@@ -14,7 +14,7 @@ function main()
     fi
 
     tar -zcf nginx.tar.gz nginx
-    docker image build -t anole:0.0.1 .
+    docker image build -t anole:0.0.2 .
 }
 
 main $*

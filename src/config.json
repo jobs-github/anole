@@ -6,7 +6,8 @@
             "members":
             [
                 ["bool", "no_delay", "true"],
-                ["bool", "keep_alive", "true"]
+                ["bool", "keep_alive", "true"],
+                ["bool", "reuse_port", "false"]
             ]
         },
         {
@@ -19,12 +20,15 @@
                 ["string", "key"],
                 ["string", "key_password"],
                 ["string", "cipher"],
+                ["string", "cipher_tls13"],
                 ["bool", "prefer_server_cipher", "true"],
                 ["string", "sni"],
                 ["[string]", "alpn"],
+                ["{uint16_t}", "alpn_port_override"],
                 ["string", "alpn_str"],
                 ["bool", "reuse_session", "true"],
-                ["int", "session_timeout", "600"]
+                ["int", "session_timeout", "600"],
+                ["string", "curves"]
             ]
         },
         {

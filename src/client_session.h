@@ -22,7 +22,7 @@ private:
     void in_async_write(c_str_t& buf);
     void in_async_write(const std::string& buf);
     void establish_tunnel();
-    void on_resolve(const boost::system::error_code err, boost::asio::ip::tcp::resolver::results_type rc);
+    void on_resolve(const boost::system::error_code err, const boost::asio::ip::tcp::resolver::results_type& rc);
     void on_connect(const boost::system::error_code err);
     void out_async_read();
     void out_async_write(const std::string& buf);
