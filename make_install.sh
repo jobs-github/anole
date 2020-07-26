@@ -77,7 +77,7 @@ function build_srv()
 
 function main()
 {
-    git archive --format=tar HEAD | gzip > anole.tar.gz
+    git archive master --format=tar | gzip > anole.tar.gz
 
     file_3rd=$dir_3rd/$name_3rd
 
